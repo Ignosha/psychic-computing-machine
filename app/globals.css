@@ -47,3 +47,10 @@ table{width:100%;border-collapse:collapse;font-size:15px}th,td{text-align:left;p
 .ad{margin:24px 0;min-height:90px}
 .foot{border-top:1px solid var(--line);padding:20px 16px 40px}
 .stars{color:#f59f00;letter-spacing:2px}
+.scorebox{display:flex;gap:16px;align-items:center}
+.grade{flex:none;width:64px;height:64px;border-radius:14px;display:grid;place-items:center;font-size:34px;font-weight:800;color:#fff;background:#868e96}
+.gA{background:#2f9e44}.gB{background:#66a80f}.gC{background:#f59f00}.gD{background:#e8590c}.gF{background:#c92a2a}
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.plans .card{margin:0}.plans .price{font-size:24px;font-weight:800;margin:4px 0}
+.plans ul{padding-left:18px;margin:8px 0 0;font-size:14px}
+pre{white-space:pre}

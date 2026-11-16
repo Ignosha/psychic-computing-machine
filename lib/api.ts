@@ -1,4 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
+import { planName, planRank, PLAN_ORDER, type Plan } from "./plans";
+import { classifyRemedy, defectSignals, METHODOLOGY, safetyScore } from "./insights";
 import {
   decodeVin, getCampaign, getComplaintSummary, getRecalls, getSafetyRatings, parseDmy,
   UpstreamError, REVALIDATE, type Recall, type SafetyRating,
@@ -9,7 +11,7 @@ import {
 const SECRET = process.env.RAPIDAPI_PROXY_SECRET || "";
 const PUBLIC = process.env.API_PUBLIC === "true";
 
-const CORS = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "*", "Access-Control-Allow-Methods": "GET, OPTIONS" };
+const CORS = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "*", "Access-Control-Allow-Methods": "GET, POST, OPTIONS" };
 
 function authorized(req: Request) {
   if (SECRET) {
@@ -29,10 +31,12 @@ export function json(body: unknown, status = 200) {
 export const error = (status: number, code: string, message: string) => json({ error: { code, message } }, status);
 export const options = () => new Response(null, { status: 204, headers: CORS });
 
-// Wraps a handler with auth and consistent errors.
-export function handler<C>(fn: (req: Request, ctx: C) => Promise<Response>) {
+// Wraps a handler with auth, plan gating and consistent errors.
+export function handler<C>(fn: (req: Request, ctx: C) => Promise<Response>, opts: { minPlan?: Plan } = {}) {
   return async (req: Request, ctx: C) => {
     if (!authorized(req)) return error(401, "unauthorized", "Missing or invalid API credentials. Subscribe via the API marketplace to get a key.");
+    if (opts.minPlan && SECRET && planRank(req.headers.get("x-rapidapi-subscription")) < PLAN_ORDER.indexOf(opts.minPlan))
+      return error(403, "plan_upgrade_required", `This endpoint requires the ${planName(opts.minPlan)} plan or higher.`);
     try {
       return await fn(req, ctx);
     } catch (e) {
@@ -67,6 +71,8 @@ export function formatRecall(r: Recall) {
     parkOutside: !!r.parkOutSide,
     overTheAirFix: !!r.overTheAirUpdate,
     unitsAffected: r.PotentialNumberofUnitsAffected ?? null,
+    remedyType: classifyRemedy(r).type,
+    remedyPhased: classifyRemedy(r).phased,
   };
 }
 
@@ -93,6 +99,7 @@ export async function vehicleReport(year: string | number, make: string, model: 
     },
     complaints: {
       total: complaints.total,
+      matchedModels: complaints.matchedModels,
       crashes: complaints.crashes,
       fires: complaints.fires,
       injuries: complaints.injuries,
@@ -105,6 +112,23 @@ export async function vehicleReport(year: string | number, make: string, model: 
       })),
     },
     safetyRatings: ratings.map(formatRating),
+    safetyScore: { ...safetyScore(recalls, ratings), methodology: METHODOLOGY.safetyScore },
+  };
+}
+
+export async function defectReport(year: string | number, make: string, model: string) {
+  const [recalls, complaints] = await Promise.all([getRecalls(year, make, model), getComplaintSummary(year, make, model)]);
+  return {
+    vehicle: { year: Number(year), make: make.toUpperCase(), model: model.toUpperCase() },
+    complaintsTotal: complaints.total,
+    complaintModels: complaints.matchedModels,
+    complaintsLast12Months: complaints.last12Months,
+    recalledComponents: [...new Set(recalls.flatMap((r) => r.Component.split(/,(?! )/).map((c) => c.split(":")[0].trim())))],
+    signals: defectSignals(complaints, recalls, 10).map((s) => ({
+      component: s.component, complaints: s.count, last12Months: s.last12Months, prior12Months: s.prior12Months,
+      trend: s.trend, crashes: s.crashes, fires: s.fires, injuries: s.injuries, deaths: s.deaths, severity: s.severity,
+    })),
+    methodology: METHODOLOGY.defectSignals,
   };
 }
 
