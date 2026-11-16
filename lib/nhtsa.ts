@@ -1,3 +1,5 @@
+import { unstable_cache } from "next/cache";
+
 // Live data client for the free, keyless NHTSA public APIs.
 // Docs: https://www.nhtsa.gov/nhtsa-datasets-and-apis
 
@@ -5,17 +7,25 @@ const API = "https://api.nhtsa.gov";
 const VPIC = "https://vpic.nhtsa.dot.gov/api";
 export const REVALIDATE = 60 * 60 * 6; // refresh live data every 6 hours
 
-async function getJson<T>(url: string): Promise<T | null> {
+export class UpstreamError extends Error {}
+
+// NHTSA returns HTTP 400 with a valid empty body for "no results"; treat that as data.
+// Network failures and other statuses throw, so an outage is never reported as "0 recalls".
+async function getJson<T>(url: string, raw = false): Promise<T> {
+  let res: Response;
   try {
-    const res = await fetch(url, {
-      headers: { Accept: "application/json" },
-      next: { revalidate: REVALIDATE },
-    });
-    if (!res.ok) return null;
-    return (await res.json()) as T;
-  } catch {
-    return null;
+    res = await fetch(url, { headers: { Accept: "application/json" }, ...(raw ? { cache: "no-store" as const } : { next: { revalidate: REVALIDATE } }) });
+  } catch (e) {
+    throw new UpstreamError(`NHTSA unreachable: ${(e as Error).message}`);
   }
+  if (res.ok || res.status === 400) {
+    try {
+      return (await res.json()) as T;
+    } catch {
+      /* fall through */
+    }
+  }
+  throw new UpstreamError(`NHTSA returned HTTP ${res.status}`);
 }
 
 export const slugify = (s: string) =>
@@ -122,10 +132,20 @@ export type ComplaintSummary = {
   recent: Complaint[];
 };
 
-export async function getComplaintSummary(year: number | string, make: string, model: string): Promise<ComplaintSummary> {
-  // Large complaint lists (>2MB) skip the data cache automatically; the rendered page is still cached via ISR.
+// Complaint lists for popular models exceed the 2MB fetch-cache limit, so cache the small computed summary instead.
+const cachedComplaintSummary = unstable_cache(
+  (year: string, make: string, model: string) => buildComplaintSummary(year, make, model),
+  ["complaint-summary-v1"],
+  { revalidate: REVALIDATE }
+);
+export function getComplaintSummary(year: number | string, make: string, model: string): Promise<ComplaintSummary> {
+  return cachedComplaintSummary(String(year), make.toUpperCase(), model.toUpperCase());
+}
+
+async function buildComplaintSummary(year: string, make: string, model: string): Promise<ComplaintSummary> {
   const j = await getJson<{ results: Complaint[] }>(
-    `${API}/complaints/complaintsByVehicle?make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}&modelYear=${year}`
+    `${API}/complaints/complaintsByVehicle?make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}&modelYear=${year}`,
+    true
   );
   const rows = j?.results ?? [];
   const comp = new Map<string, number>();
@@ -176,7 +196,7 @@ export async function decodeVin(vin: string): Promise<VinInfo | null> {
   const j = await getJson<{ Results: Record<string, string>[] }>(
     `${VPIC}/vehicles/DecodeVinValues/${encodeURIComponent(vin)}?format=json`
   );
-  const r = j?.Results?.[0];
+  const r = j.Results?.[0];
   if (!r) return null;
   return {
     vin,

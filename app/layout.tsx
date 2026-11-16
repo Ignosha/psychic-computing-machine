@@ -22,7 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <header className="top">
           <div className="wrap">
             <Link href="/" className="logo"><span aria-hidden>◉</span> {SITE_NAME}</Link>
-            <nav><Link href="/recalls">Browse by year</Link></nav>
+            <nav><Link href="/recalls">Browse by year</Link> · <Link href="/developers">API</Link></nav>
           </div>
         </header>
         <main className="wrap">{children}</main>
