@@ -1,0 +1,37 @@
+name: Refresh sanctions lists
+
+on:
+  schedule:
+    - cron: "17 */6 * * *" # every 6 hours
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-sanctions
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # Fails (and GitHub emails the repo owner) if any list can't be downloaded or parses suspiciously small;
+      # the previous data stays in place, so screening never runs on a broken list.
+      - run: node scripts/ingest-sanctions.mjs
+      - name: Commit refreshed lists
+        # Always commit: generatedAt records when the lists were last checked, which the API reports as listsVersion.
+        # When no list changed, only that first line differs, so the commit is tiny.
+        run: |
+          git config user.name "sanctions-refresh-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/sanctions.json
+          git commit -m "Refresh sanctions lists ($(date -u +%Y-%m-%dT%H:%MZ))" || exit 0
+          git push

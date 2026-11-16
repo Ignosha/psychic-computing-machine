@@ -8,7 +8,9 @@ import {
 
 // Auth: when RAPIDAPI_PROXY_SECRET is set, only requests forwarded by RapidAPI (which add this header) are served.
 // In production without a secret the API is closed unless API_PUBLIC=true, so it can't be used for free by accident.
-const SECRET = process.env.RAPIDAPI_PROXY_SECRET || "";
+// Comma-separated: each RapidAPI listing (vehicle API, sanctions API) has its own proxy secret.
+const SECRETS = (process.env.RAPIDAPI_PROXY_SECRET || "").split(",").map((s) => s.trim()).filter(Boolean);
+const SECRET = SECRETS.length > 0;
 const PUBLIC = process.env.API_PUBLIC === "true";
 
 const CORS = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "*", "Access-Control-Allow-Methods": "GET, POST, OPTIONS" };
@@ -16,8 +18,7 @@ const CORS = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers
 function authorized(req: Request) {
   if (SECRET) {
     const got = Buffer.from(req.headers.get("x-rapidapi-proxy-secret") || "");
-    const want = Buffer.from(SECRET);
-    return got.length === want.length && timingSafeEqual(got, want);
+    return SECRETS.some((s) => { const want = Buffer.from(s); return got.length === want.length && timingSafeEqual(got, want); });
   }
   return PUBLIC || process.env.NODE_ENV !== "production";
 }
@@ -31,12 +32,16 @@ export function json(body: unknown, status = 200) {
 export const error = (status: number, code: string, message: string) => json({ error: { code, message } }, status);
 export const options = () => new Response(null, { status: 204, headers: CORS });
 
+// The caller's plan; when the API isn't behind RapidAPI (local/dev or API_PUBLIC), every feature is available.
+export const callerPlan = (req: Request): Plan =>
+  SECRET ? PLAN_ORDER[planRank(req.headers.get("x-rapidapi-subscription"))] : "MEGA";
+
 // Wraps a handler with auth, plan gating and consistent errors.
-export function handler<C>(fn: (req: Request, ctx: C) => Promise<Response>, opts: { minPlan?: Plan } = {}) {
+export function handler<C>(fn: (req: Request, ctx: C) => Promise<Response>, opts: { minPlan?: Plan; planLabel?: string } = {}) {
   return async (req: Request, ctx: C) => {
     if (!authorized(req)) return error(401, "unauthorized", "Missing or invalid API credentials. Subscribe via the API marketplace to get a key.");
     if (opts.minPlan && SECRET && planRank(req.headers.get("x-rapidapi-subscription")) < PLAN_ORDER.indexOf(opts.minPlan))
-      return error(403, "plan_upgrade_required", `This endpoint requires the ${planName(opts.minPlan)} plan or higher.`);
+      return error(403, "plan_upgrade_required", `This endpoint requires the ${opts.planLabel ?? planName(opts.minPlan)} plan or higher.`);
     try {
       return await fn(req, ctx);
     } catch (e) {

@@ -54,3 +54,9 @@ table{width:100%;border-collapse:collapse;font-size:15px}th,td{text-align:left;p
 .plans .card{margin:0}.plans .price{font-size:24px;font-weight:800;margin:4px 0}
 .plans ul{padding-left:18px;margin:8px 0 0;font-size:14px}
 pre{white-space:pre}
+.sform{grid-template-columns:2fr 1fr 1fr auto}
+@media (max-width:640px){
+  .sform{grid-template-columns:1fr 1fr}.sform input[name=q]{grid-column:1/-1}
+  .top .wrap{height:auto;padding-top:10px;padding-bottom:10px;flex-wrap:wrap;gap:4px 16px}
+  nav{font-size:14px}
+}

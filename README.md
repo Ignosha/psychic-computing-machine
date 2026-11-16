@@ -1,5 +1,41 @@
 # RecallRadar
 
+Two products in one Next.js app, both on free, official government data:
+1. **Sanctions Screening API** (`/api/v1/sanctions`, free search at `/sanctions`, docs at `/sanctions/api`)
+2. **Vehicle recall site + Vehicle Safety API** (below)
+
+## Sanctions Screening API
+Screens names against **33,000+ records** on five official lists, refreshed every 6 hours:
+
+| List | Publisher |
+|---|---|
+| OFAC SDN + OFAC Consolidated (Non-SDN) | U.S. Department of the Treasury |
+| UN Security Council Consolidated List | United Nations |
+| EU Consolidated Financial Sanctions List | European Commission |
+| UK Sanctions List | UK FCDO |
+
+**Matching** (`lib/sanctions/`): Unicode and Cyrillic transliteration, legal-suffix removal (LLC, OOO, PJSC…), token-level Jaro-Winkler with reorder handling, alias coverage, middle-name tolerance, plus DOB and country filters. Measured on 400 random real listed names: 100% found exact, 100% reordered, 99.8% with a typo, 100% with first + last name only. Innocent common names (John Smith, Michael Johnson, Sarah Thompson…) return no matches.
+
+| Endpoint | Purpose |
+|---|---|
+| `GET/POST /api/v1/sanctions/screen` | Screen one name (`name`, optional `type`, `dob`, `country`, `sources`, `threshold`, `limit`) |
+| `POST /api/v1/sanctions/batch` | Screen many names (Growth: 25, Business/Enterprise: 100 per call) |
+| `GET /api/v1/sanctions/entities/{id}` | Full record with every alias |
+| `GET /api/v1/sanctions/lists` | Lists covered, counts, official publication dates |
+| `GET /api/v1/sanctions/openapi.json` | OpenAPI 3 spec for RapidAPI import |
+
+Each screening returns `decision` (`clear`, `potential_match`, `strong_match`), a `screeningId` for audit trails, and `listsVersion` (when the lists were last fetched).
+
+**Data refresh:** `.github/workflows/refresh-sanctions.yml` runs `scripts/ingest-sanctions.mjs` every 6 hours and commits `data/sanctions.json`; Vercel redeploys automatically. If a list fails to download or parses suspiciously small, the job fails (GitHub emails you) and the previous data stays live. Run manually: `node scripts/ingest-sanctions.mjs`.
+
+**Suggested plans** (`lib/plans.ts`, `SANCTIONS_PLANS`): Starter free (100/mo), Growth $149/mo (10k), Business $599/mo (100k), Enterprise $2,499/mo (1M). Create it as a **separate RapidAPI listing** with plans BASIC/PRO/ULTRA/MEGA, and add its proxy secret to `RAPIDAPI_PROXY_SECRET` comma-separated with the vehicle API's secret.
+
+**Before selling:** have a lawyer review your terms of service. The API returns a disclaimer that results are potential matches for human review and not legal advice, but your contract with customers should say so too.
+
+---
+
+# Vehicle recall site
+
 Free vehicle recall and VIN check site built on **live** U.S. government data (NHTSA public APIs: no API key, no cost).
 
 - **VIN tool**: decodes any 17-character VIN (vPIC API) and shows recalls, complaints and crash ratings for that vehicle.
@@ -25,7 +61,8 @@ Optional environment variables:
 | `NEXT_PUBLIC_SITE_NAME` | Rename the site |
 | `NEXT_PUBLIC_ADSENSE_CLIENT` | Your Google AdSense publisher ID (`ca-pub-...`). Ad slots stay hidden until this is set |
 | `NEXT_PUBLIC_ADSENSE_SLOT` | Optional AdSense ad-unit ID |
-| `RAPIDAPI_PROXY_SECRET` | Locks the API so only RapidAPI-forwarded (paying) requests are served |
+| `RAPIDAPI_PROXY_SECRET` | Locks the APIs so only RapidAPI-forwarded (paying) requests are served. Comma-separate one secret per RapidAPI listing |
+| `NEXT_PUBLIC_SANCTIONS_MARKETPLACE_URL` | Sanctions API RapidAPI listing URL (shows a "Get an API key" button) |
 | `API_PUBLIC` | Set to `true` to open the API to everyone without a key (not recommended once you sell it) |
 | `NEXT_PUBLIC_API_MARKETPLACE_URL` | Your RapidAPI listing URL; shows a "Get an API key" button on `/developers` |
 
