@@ -6,6 +6,7 @@ const config: NextConfig = {
     "/api/v1/sanctions/**": ["./data/sanctions.json"],
     "/sanctions/**": ["./data/sanctions.json"],
     "/sanctions": ["./data/sanctions.json"],
+    "/api/cron/**": ["./data/sanctions.json"],
   },
 };
 export default config;

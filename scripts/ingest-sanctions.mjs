@@ -2,6 +2,7 @@
 // so daily git diffs stay small). Run: node scripts/ingest-sanctions.mjs [--from-dir <dir with saved XML>]
 import { XMLParser } from "fast-xml-parser";
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { createHash } from "node:crypto";
 
 const SOURCES = [
   { id: "OFAC_SDN", name: "OFAC Specially Designated Nationals (SDN) List", publisher: "U.S. Department of the Treasury",
@@ -171,6 +172,9 @@ for (const src of SOURCES) {
   console.log(`${src.id}: ${clean.length} entries (published ${published})`);
 }
 mkdirSync("data", { recursive: true });
-const body = `{"generatedAt":${JSON.stringify(out.generatedAt)},\n"sources":${JSON.stringify(out.sources)},\n"entries":[\n${out.entries.map((e) => JSON.stringify(e)).join(",\n")}\n]}\n`;
+const entriesText = out.entries.map((e) => JSON.stringify(e)).join(",\n");
+// Fingerprint of the records only (not timestamps): monitoring re-screens names only when this changes.
+const contentHash = createHash("sha256").update(entriesText).digest("hex").slice(0, 32);
+const body = `{"generatedAt":${JSON.stringify(out.generatedAt)},"contentHash":${JSON.stringify(contentHash)},\n"sources":${JSON.stringify(out.sources)},\n"entries":[\n${entriesText}\n]}\n`;
 writeFileSync("data/sanctions.json", body);
 console.log(`wrote data/sanctions.json: ${out.entries.length} entries, ${(body.length / 1e6).toFixed(1)} MB`);

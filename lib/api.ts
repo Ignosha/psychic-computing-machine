@@ -36,6 +36,13 @@ export const options = () => new Response(null, { status: 204, headers: CORS });
 export const callerPlan = (req: Request): Plan =>
   SECRET ? PLAN_ORDER[planRank(req.headers.get("x-rapidapi-subscription"))] : "MEGA";
 
+// Stable customer identity for stored data (monitors, alerts, webhooks). Behind RapidAPI this is the
+// X-RapidAPI-User header, which RapidAPI sets and which is trusted only after the proxy secret is verified.
+// Without RapidAPI (local development) a fixed "dev" owner is used. In production without RapidAPI there is
+// no trustworthy identity, so stored-data features are refused.
+export const callerId = (req: Request): string | null =>
+  SECRET ? (req.headers.get("x-rapidapi-user") || "").slice(0, 120) || null : process.env.NODE_ENV !== "production" ? "dev" : null;
+
 // Wraps a handler with auth, plan gating and consistent errors.
 export function handler<C>(fn: (req: Request, ctx: C) => Promise<Response>, opts: { minPlan?: Plan; planLabel?: string } = {}) {
   return async (req: Request, ctx: C) => {

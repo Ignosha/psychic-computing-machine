@@ -24,6 +24,7 @@ export default function SanctionsApi() {
         <li><b>Five lists, one call</b>, with each list’s official publication date returned so you can prove freshness.</li>
         <li><b>Fuzzy, multilingual matching:</b> misspellings, reordered names, hyphenation, legal suffixes (LLC, OOO, PJSC) and Cyrillic input. In our test of 400 real listed names: 100% found exact or reordered, 99.8% with a typo, 100% with first and last name only.</li>
         <li><b>Fewer false positives:</b> date-of-birth and country filters, plus a clear / potential / strong decision.</li>
+        <li><b>Ongoing monitoring:</b> save your customers once; once a day they are re-screened against any list changes and you get a signed webhook alert for any new match or delisting.</li>
         <li><b>Audit-ready:</b> every screening returns a unique ID, timestamp and the list snapshot version.</li>
       </ul></div>
       <h2>Plans</h2>

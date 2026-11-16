@@ -10,7 +10,7 @@ export type SanctionsEntry = {
 export type SourceInfo = { id: string; name: string; publisher: string; url: string; publishedAt: string | null; count: number };
 
 type NameRec = { entry: number; raw: string; toks: string[]; compact: string; primary: boolean };
-type Db = { generatedAt: string; sources: SourceInfo[]; entries: SanctionsEntry[]; names: NameRec[]; index: Map<string, number[]>; byId: Map<string, SanctionsEntry> };
+type Db = { generatedAt: string; contentHash: string; sources: SourceInfo[]; entries: SanctionsEntry[]; names: NameRec[]; index: Map<string, number[]>; byId: Map<string, SanctionsEntry> };
 
 let db: Db | null = null;
 
@@ -20,7 +20,7 @@ const keysFor = (t: string) => (t.length < 2 ? [] : [`p:${t.slice(0, 3)}`, `s:${
 export function loadDb(): Db {
   if (db) return db;
   const file = path.join(process.cwd(), "data", "sanctions.json");
-  const data = JSON.parse(readFileSync(file, "utf8")) as { generatedAt: string; sources: SourceInfo[]; entries: SanctionsEntry[] };
+  const data = JSON.parse(readFileSync(file, "utf8")) as { generatedAt: string; contentHash: string; sources: SourceInfo[]; entries: SanctionsEntry[] };
   const names: NameRec[] = [];
   const index = new Map<string, number[]>();
   data.entries.forEach((e, i) => {
@@ -38,7 +38,7 @@ export function loadDb(): Db {
       }
     });
   });
-  db = { generatedAt: data.generatedAt, sources: data.sources, entries: data.entries, names, index, byId: new Map(data.entries.map((e) => [e.id, e])) };
+  db = { generatedAt: data.generatedAt, contentHash: data.contentHash, sources: data.sources, entries: data.entries, names, index, byId: new Map(data.entries.map((e) => [e.id, e])) };
   return db;
 }
 
@@ -69,6 +69,8 @@ function tokenSim(q: string, c: string): number {
   if (q.length === 1 || c.length === 1) return q[0] === c[0] ? 0.85 : 0; // initials
   let s = jaroWinkler(q, c);
   if (Math.min(q.length, c.length) <= 3) s *= 0.8; // short tokens ("al" vs "ali") look alike too easily
+  // A name that merely starts another (Vladimir vs Vladimirovna, a patronymic) is a different name.
+  if (Math.abs(q.length - c.length) >= 3 && (q.startsWith(c) || c.startsWith(q))) s *= 0.85;
   // Keep close spellings (Kadirov/Kadyrov) strong; push looser resemblances (Miller/Mayer) down.
   return s >= 0.92 ? s : s - (0.92 - s) * 0.6;
 }

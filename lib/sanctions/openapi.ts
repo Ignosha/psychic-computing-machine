@@ -24,7 +24,7 @@ export const sanctionsOpenapi = {
   openapi: "3.0.3",
   info: {
     title: SANCTIONS_NAME, version: "1.0.0",
-    description: "Screen people, companies, vessels and aircraft against the official OFAC (SDN + Consolidated), UN Security Council, EU and UK sanctions lists in one call. Fuzzy, transliteration-aware matching (Latin and Cyrillic), alias coverage, DOB and country filters, and clear/potential/strong decisions. Lists refresh from the official publishers every 6 hours.",
+    description: "Screen people, companies, vessels and aircraft against the official OFAC (SDN + Consolidated), UN Security Council, EU and UK sanctions lists in one call. Fuzzy, transliteration-aware matching (Latin and Cyrillic), alias coverage, DOB and country filters, and clear/potential/strong decisions. Lists refresh from the official publishers every 6 hours. Ongoing monitoring re-screens your saved names daily against any list changes and alerts you by webhook.",
   },
   servers: [{ url: `${SITE_URL}/api/v1/sanctions` }],
   paths: {
@@ -53,6 +53,44 @@ export const sanctionsOpenapi = {
         } }), ...errors({ "400": "Invalid body or too many queries for your plan", "403": "Plan upgrade required" }) },
       },
     },
+    "/monitors": {
+      get: {
+        summary: "List monitored names", operationId: "listMonitors", tags: ["Monitoring"],
+        parameters: [qp("limit", "Page size (max 500)", { type: "integer" }, 100), qp("offset", "Offset", { type: "integer" }, 0)],
+        responses: { ...ok({ type: "object", properties: { total: { type: "integer" }, planLimit: { type: "integer" }, monitors: { type: "array", items: { $ref: "#/components/schemas/Monitor" } } } }), ...errors({ "503": "Monitoring temporarily unavailable" }) },
+      },
+      post: {
+        summary: "Monitor names: screened now, then re-screened daily whenever the lists have changed", operationId: "addMonitors", tags: ["Monitoring"],
+        description: "Up to 500 items per call. Re-adding an item with the same externalId updates it. Plan limits: Starter 10, Growth 1,000, Business 25,000, Enterprise 250,000 monitored names.",
+        requestBody: { required: true, content: { "application/json": { schema: { type: "object", required: ["items"], properties: { items: { type: "array", maxItems: 500, items: { allOf: [Query, { type: "object", properties: { externalId: { type: "string", description: "Your own customer ID" } } }] } } } },
+          example: { items: [{ name: "Jane Doe", externalId: "cust-1042", dob: "1985-04-12", country: "Canada" }] } } } },
+        responses: { ...ok({ type: "object", properties: { added: { type: "integer" }, results: { type: "array", items: { type: "object", properties: { monitor: { $ref: "#/components/schemas/Monitor" }, currentScreening: { type: "object" } } } } } }), ...errors({ "400": "Invalid items", "403": "Monitor limit reached for your plan" }) },
+      },
+    },
+    "/monitors/{id}": {
+      get: { summary: "Get a monitored name", operationId: "getMonitor", tags: ["Monitoring"], parameters: [{ name: "id", in: "path", required: true, schema: { type: "string", format: "uuid" } }],
+        responses: { ...ok({ $ref: "#/components/schemas/Monitor" }), ...errors({ "404": "Not found" }) } },
+      delete: { summary: "Stop monitoring a name", operationId: "deleteMonitor", tags: ["Monitoring"], parameters: [{ name: "id", in: "path", required: true, schema: { type: "string", format: "uuid" } }],
+        responses: { ...ok({ type: "object", properties: { deleted: { type: "string" } } }), ...errors({ "404": "Not found" }) } },
+    },
+    "/alerts": {
+      get: {
+        summary: "Alerts: a monitored name newly matches a list, or a match was delisted", operationId: "listAlerts", tags: ["Monitoring"],
+        description: "Poll with after=<last alert id you processed>. Alerts are also pushed to your webhook if one is set.",
+        parameters: [qp("after", "Return alerts with id greater than this", { type: "integer" }, 0), qp("limit", "Max alerts (max 500)", { type: "integer" }, 100)],
+        responses: { ...ok({ type: "object", properties: { count: { type: "integer" }, nextAfter: { type: "integer" }, alerts: { type: "array", items: { $ref: "#/components/schemas/Alert" } } } }), ...errors({}) },
+      },
+    },
+    "/webhook": {
+      get: { summary: "Current webhook URL", operationId: "getWebhook", tags: ["Monitoring"], responses: { ...ok({ type: "object", properties: { url: { type: "string", nullable: true } } }), ...errors({}) } },
+      put: {
+        summary: "Set the HTTPS URL that receives alerts (returns a signing secret)", operationId: "setWebhook", tags: ["Monitoring"],
+        description: "Deliveries are POSTs of {type: 'sanctions.alerts', alerts: [...]} with X-Webhook-Timestamp and X-Webhook-Signature (sha256=HMAC-SHA256 of `${timestamp}.${body}`). Failed deliveries are retried up to 6 times.",
+        requestBody: { required: true, content: { "application/json": { schema: { type: "object", required: ["url"], properties: { url: { type: "string", format: "uri" } } } } } },
+        responses: { ...ok({ type: "object", properties: { url: { type: "string" }, signingSecret: { type: "string" } } }), ...errors({ "400": "URL must be public HTTPS" }) },
+      },
+      delete: { summary: "Remove the webhook", operationId: "deleteWebhook", tags: ["Monitoring"], responses: { ...ok({ type: "object", properties: { deleted: { type: "boolean" } } }), ...errors({}) } },
+    },
     "/entities/{id}": {
       get: {
         summary: "Full sanctions record, including every alias", operationId: "getEntity", tags: ["Records"],
@@ -71,6 +109,17 @@ export const sanctionsOpenapi = {
   components: {
     schemas: {
       Error: { type: "object", properties: { error: { type: "object", properties: { code: { type: "string" }, message: { type: "string" } } } } },
+      Monitor: { type: "object", properties: {
+        id: { type: "string", format: "uuid" }, externalId: { type: "string", nullable: true }, name: { type: "string" }, type: { type: "string", nullable: true },
+        dob: { type: "string", nullable: true }, country: { type: "string", nullable: true }, createdAt: { type: "string", format: "date-time" },
+        lastScreenedAt: { type: "string", format: "date-time" }, lastDecision: { type: "string", enum: ["clear", "potential_match", "strong_match"] },
+        currentMatchIds: { type: "array", items: { type: "string" } }, upToDate: { type: "boolean", description: "Screened against the current list snapshot" },
+      } },
+      Alert: { type: "object", properties: {
+        id: { type: "integer" }, kind: { type: "string", enum: ["new_match", "match_removed"] }, monitorId: { type: "string" }, externalId: { type: "string", nullable: true },
+        monitoredName: { type: "string" }, match: { type: "object", description: "Full match (new_match) or {id} (match_removed)" }, listsVersion: { type: "string" },
+        createdAt: { type: "string", format: "date-time" }, webhookDelivered: { type: "boolean" },
+      } },
       Record: { type: "object", properties: {
         id: { type: "string" }, source: { type: "string" }, sourceName: { type: "string" }, type: { type: "string" }, name: { type: "string" },
         aliases: { type: "array", items: { type: "string" } }, aliasCount: { type: "integer" }, datesOfBirth: { type: "array", items: { type: "string" } },

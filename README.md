@@ -28,7 +28,23 @@ Each screening returns `decision` (`clear`, `potential_match`, `strong_match`), 
 
 **Data refresh:** `.github/workflows/refresh-sanctions.yml` runs `scripts/ingest-sanctions.mjs` every 6 hours and commits `data/sanctions.json`; Vercel redeploys automatically. If a list fails to download or parses suspiciously small, the job fails (GitHub emails you) and the previous data stays live. Run manually: `node scripts/ingest-sanctions.mjs`.
 
-**Suggested plans** (`lib/plans.ts`, `SANCTIONS_PLANS`): Starter free (100/mo), Growth $149/mo (10k), Business $599/mo (100k), Enterprise $2,499/mo (1M). Create it as a **separate RapidAPI listing** with plans BASIC/PRO/ULTRA/MEGA, and add its proxy secret to `RAPIDAPI_PROXY_SECRET` comma-separated with the vehicle API's secret.
+**Ongoing monitoring:** customers save names once (`POST /monitors`, with their own `externalId`). A daily Vercel Cron job (`/api/cron/rescreen`, `vercel.json`) re-screens every saved name whose last check predates the current list snapshot, records `new_match` / `match_removed` alerts, and pushes them to the customer's webhook (HMAC-signed, retried up to 6 times; private and non-HTTPS URLs are refused). Customers can also poll `GET /alerts?after=`. Each customer's data is isolated by RapidAPI's `X-RapidAPI-User` header.
+
+| Endpoint | Purpose |
+|---|---|
+| `GET/POST /api/v1/sanctions/monitors` | List / add monitored names (up to 500 per call; upsert by `externalId`) |
+| `GET/DELETE /api/v1/sanctions/monitors/{id}` | Get / stop monitoring a name |
+| `GET /api/v1/sanctions/alerts?after=` | New-match and delisting alerts |
+| `GET/PUT/DELETE /api/v1/sanctions/webhook` | Manage the alert webhook (PUT returns the signing secret once) |
+
+**Monitoring setup (free Supabase project):**
+1. Apply `supabase/migrations/0001_sanctions_monitoring.sql` (tables are private with RLS on; the app reaches them only through secret-checked functions).
+2. Generate a long random secret and store it: `insert into monitoring.config (key, value) values ('api_secret', '<secret>');`
+3. In Vercel set `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `MONITORING_DB_SECRET` (the same secret) and `CRON_SECRET` (another random string; Vercel Cron sends it automatically).
+
+Until these are set, monitoring endpoints return 503 and everything else works.
+
+**Suggested plans** (`lib/plans.ts`, `SANCTIONS_PLANS`): Starter free (100 screenings/mo, 10 monitored names), Growth $199/mo (10k, 1,000 monitored), Business $749/mo (100k, 25,000 monitored), Enterprise $2,999/mo (1M, 250,000 monitored). Create it as a **separate RapidAPI listing** with plans BASIC/PRO/ULTRA/MEGA, and add its proxy secret to `RAPIDAPI_PROXY_SECRET` comma-separated with the vehicle API's secret.
 
 **Before selling:** have a lawyer review your terms of service. The API returns a disclaimer that results are potential matches for human review and not legal advice, but your contract with customers should say so too.
 
