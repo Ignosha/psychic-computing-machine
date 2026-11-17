@@ -11,6 +11,6 @@ identity, payout details and acceptance of their terms); the technical side is r
 | `outreach.md` | Who buys this, how to find them, and a short cold email |
 
 Live links (replace the domain if you add a custom one):
-- Site: https://recallradar-puce.vercel.app
-- Docs and pricing: https://recallradar-puce.vercel.app/api-docs
+- Site: https://noshguard.vercel.app
+- Docs and pricing: https://noshguard.vercel.app/api-docs
 - OpenAPI specs: `/api/v1/openapi/sanctions.json`, `/api/v1/openapi/xrpl-payments.json`, `/api/v1/openapi/xrpl-tokens.json`, `/api/v1/openapi/all.json`

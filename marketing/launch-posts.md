@@ -14,11 +14,11 @@ Replace the URL if you add a custom domain. Post from your own accounts; be tran
 
 ## Reddit (r/XRP, r/Ripple, r/CryptoCurrency rules permitting; read each subreddit's self-promotion rules first)
 **Title**: I built a free tool that tells you if an XRP payment will fail before you send it (and if a payment you received is fake)
-**Body**: Losing an exchange deposit to a missing destination tag, or getting "paid" in a fake USD token, are classic XRPL mistakes. NoshGuard has free checks: Pre-flight (will it land?), Verify (what really arrived? partial payment? counterfeit token?), Token Risk (can the issuer freeze or claw back? is it really who it says?). Link: https://recallradar-puce.vercel.app. Built with NOSHASHI. Feedback welcome.
+**Body**: Losing an exchange deposit to a missing destination tag, or getting "paid" in a fake USD token, are classic XRPL mistakes. NoshGuard has free checks: Pre-flight (will it land?), Verify (what really arrived? partial payment? counterfeit token?), Token Risk (can the issuer freeze or claw back? is it really who it says?). Link: https://noshguard.vercel.app. Built with NOSHASHI. Feedback welcome.
 
 ## X / Twitter thread
 1/ On the XRP Ledger, a payment can say $1,000 and deliver $0.02. It's called a partial payment, and it's caught plenty of merchants. I built a free checker. 🧵
-2/ Paste any tx hash → see what was actually delivered, whether the token is the real RLUSD/USDC or an impostor, and whether the sender is OFAC-listed: https://recallradar-puce.vercel.app/xrpl/verify
+2/ Paste any tx hash → see what was actually delivered, whether the token is the real RLUSD/USDC or an impostor, and whether the sender is OFAC-listed: https://noshguard.vercel.app/xrpl/verify
 3/ Sending instead? Pre-flight tells you if it will fail first: missing destination tag, unactivated account, no trust line, frozen token: /xrpl/preflight
 4/ Buying a token? Grade it A–F: freeze/clawback powers, verified issuer, AMM liquidity, NOSHASHI certificate: /xrpl/token
 5/ All free on the site; there's an API for wallets, exchanges and merchants. Built with @noshashi.

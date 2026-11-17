@@ -5,7 +5,7 @@ than one combined listing, and each targets a different buyer.
 
 ## Setup steps (same for each listing)
 1. RapidAPI Studio → **Add API Project** → name it (below) → **Import OpenAPI** from the spec URL.
-2. **Base URL**: `https://recallradar-puce.vercel.app/api/v1` (or your custom domain).
+2. **Base URL**: `https://noshguard.vercel.app/api/v1` (or your custom domain).
 3. **Settings → Security**: copy the **Proxy Secret**. After creating all three, send me the three secrets (or add them
    yourself in Vercel → Settings → Environment Variables as `RAPIDAPI_PROXY_SECRET`, comma-separated) and redeploy.
 4. **Plans & Pricing**: create the plans below. Plan IDs must be the standard BASIC / PRO / ULTRA / MEGA, because the
@@ -19,7 +19,7 @@ Quota tip: RapidAPI counts requests, not credits. Heavier endpoints (Token Risk 
 ---
 
 ## Listing 1: NoshGuard Sanctions & Crypto Wallet Screening
-- **Spec**: `https://recallradar-puce.vercel.app/api/v1/openapi/sanctions.json`
+- **Spec**: `https://noshguard.vercel.app/api/v1/openapi/sanctions.json`
 - **Category**: Financial (or Data → Compliance if available)
 - **Tags**: sanctions, OFAC, AML, KYC, compliance, crypto, wallet screening, watchlist, PEP alternative, UN sanctions, EU sanctions, UK sanctions
 - **Short description** (<= 120 chars): Screen names and crypto wallets against OFAC, UN, EU and UK sanctions lists. Fuzzy matching, monitoring, webhooks.
@@ -34,7 +34,7 @@ Quota tip: RapidAPI counts requests, not credits. Heavier endpoints (Token Risk 
 - **Plans**: BASIC Free 200 req/mo · PRO $199/mo 10,000 req · ULTRA $749/mo 100,000 req · MEGA $2,999/mo 1,000,000 req
 
 ## Listing 2: NoshGuard XRPL Payment Safety
-- **Spec**: `https://recallradar-puce.vercel.app/api/v1/openapi/xrpl-payments.json`
+- **Spec**: `https://noshguard.vercel.app/api/v1/openapi/xrpl-payments.json`
 - **Category**: Payments (or Cryptocurrency)
 - **Tags**: XRP, XRPL, XRP Ledger, RLUSD, payments, payment verification, partial payment, destination tag, crypto compliance, merchant, wallet, OFAC
 - **Short description**: Will this XRP payment land? Did I really get paid? Pre-flight, settlement verification and counterparty checks for XRPL.
@@ -51,7 +51,7 @@ Quota tip: RapidAPI counts requests, not credits. Heavier endpoints (Token Risk 
 - **Plans**: same as Listing 1.
 
 ## Listing 3: NoshGuard XRPL Token Risk
-- **Spec**: `https://recallradar-puce.vercel.app/api/v1/openapi/xrpl-tokens.json`
+- **Spec**: `https://noshguard.vercel.app/api/v1/openapi/xrpl-tokens.json`
 - **Category**: Cryptocurrency (or Finance)
 - **Tags**: XRPL, XRP Ledger, token, memecoin, rug check, token security, issuer, AMM, liquidity, RLUSD, due diligence, NOSHASHI
 - **Short description**: A-F risk grade for any XRPL token: issuer powers, verified identity, liquidity, NOSHASHI certificate and sanctions.

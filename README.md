@@ -1,7 +1,7 @@
 # NoshGuard: crypto compliance & XRPL payment safety APIs (a NOSHASHI product)
 
 Free tools on the website plus a paid API, all on real data: official sanctions lists and live XRP Ledger reads.
-Live: https://recallradar-puce.vercel.app · Docs & pricing: `/api-docs` · Marketing kit: [`marketing/`](marketing/)
+Live: https://noshguard.vercel.app · Docs & pricing: `/api-docs` · Marketing kit: [`marketing/`](marketing/)
 
 ## Products
 | Product | Endpoint | Credits | Free page |
