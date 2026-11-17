@@ -24,7 +24,8 @@ export default function ApiDocs() {
   const ops = Object.entries(sanctionsOpenapi.paths).flatMap(([path, o]) => Object.entries(o).map(([m, op]) => ({ path, m, summary: (op as { summary: string }).summary })));
   return (
     <>
-      <h1>{SITE_NAME} API</h1>
+      <p className="eyebrow">API &amp; pricing</p>
+      <h1>One API for <em>every</em> check.</h1>
       <p className="muted">Crypto compliance and XRPL payment safety in one API: {info.totalRecords.toLocaleString()} official sanctions records and live XRP Ledger reads, with {PARENT_BRAND.name} issuer certificates built in. JSON over HTTPS; every response names its data source and ledger index.</p>
       {MARKET && <p><a href={MARKET}><button>Subscribe on the API marketplace</button></a></p>}
 

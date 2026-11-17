@@ -26,10 +26,12 @@ export default async function SanctionsPage({ searchParams }: P) {
   return (
     <>
       <section className="hero">
-        <h1>Free sanctions check</h1>
+        <p className="eyebrow">Sanctions · OFAC, UN, EU, UK</p>
+        <h1>Free sanctions <em>check</em></h1>
         <p className="lead">Search {info.totalRecords.toLocaleString()} sanctioned people, companies, vessels and aircraft on the official U.S. OFAC, UN, EU and UK lists. Handles misspellings, aliases, reordered and Cyrillic names. Paste a crypto wallet address to check it against the {walletCount().toLocaleString()} sanctioned wallets OFAC publishes.</p>
       </section>
       <form className="panel picker sform" method="get">
+        <div className="io-head"><span>Input / Name, company or wallet</span><span>Read only</span></div>
         <input name="q" defaultValue={sp.q ?? ""} placeholder="Name, company or wallet address" aria-label="Name" required minLength={2} maxLength={200} />
         <input name="dob" defaultValue={sp.dob ?? ""} placeholder="Birth year" aria-label="Date of birth" pattern="\d{4}(-\d{2}(-\d{2})?)?" />
         <input name="country" defaultValue={sp.country ?? ""} placeholder="Country" aria-label="Country" />
@@ -54,7 +56,7 @@ export default async function SanctionsPage({ searchParams }: P) {
       )}
       {result && (
         <>
-          <div className={`card ${result.decision === "clear" ? "ok" : "danger"}`}>
+          <div className={`card ${result.decision === "clear" ? "ok" : result.decision === "strong_match" ? "danger" : "verdict"}`}>
             <b>{result.decision === "clear" ? "No matches found" : result.decision === "strong_match" ? "Strong match: review required" : "Potential match: review required"}</b>
             <p className="small muted" style={{ margin: "4px 0 0" }}>Screened {new Date(result.screenedAt).toUTCString()} against lists fetched {new Date(result.listsVersion).toUTCString()}.</p>
           </div>

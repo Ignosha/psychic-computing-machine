@@ -25,9 +25,10 @@ export default async function Page({ searchParams }: P) {
   const p = result?.payment;
   return (
     <>
-      <section className="hero"><h1>Did you really get paid?</h1>
+      <section className="hero"><p className="eyebrow">02 / Verify · after you&apos;re paid</p><h1>Did you <em>really</em> get paid?</h1>
         <p className="lead">On the XRP Ledger a payment can say $1,000 and deliver cents (a partial payment), or arrive in a token that only looks like USD, RLUSD or USDC. Paste the transaction hash before you ship goods or credit a balance.</p></section>
       <form className="panel picker" method="get" style={{ gridTemplateColumns: "1fr 1fr" }}>
+        <div className="io-head"><span>Input / Transaction</span><span>Read only</span></div>
         <input name="tx" defaultValue={sp.tx ?? ""} placeholder="Transaction hash" required aria-label="Transaction hash" style={{ gridColumn: "1/-1" }} />
         <input name="expectTo" defaultValue={sp.expectTo ?? ""} placeholder="Your receiving address (optional)" aria-label="Expected recipient" />
         <input name="expectDestinationTag" defaultValue={sp.expectDestinationTag ?? ""} placeholder="Expected destination tag (optional)" aria-label="Expected tag" />
@@ -37,7 +38,7 @@ export default async function Page({ searchParams }: P) {
       </form>
       {problem && <div className="card danger">{problem}</div>}
       {result && p && <>
-        <div className={`card ${result.verdict === "settled" ? "ok" : result.verdict === "not_settled" ? "danger" : ""}`}><b>{LABEL[result.verdict]}</b>
+        <div className={`card ${result.verdict === "settled" ? "ok" : result.verdict === "not_settled" ? "danger" : "verdict"}`}><b>{LABEL[result.verdict]}</b>
           <p className="small muted" style={{ margin: "4px 0 0" }}>Delivered <b>{p.deliveredAmount ? `${p.deliveredAmount.value} ${p.deliveredAmount.currency}` : "unknown"}</b>{p.statedAmount ? ` (stated ${p.statedAmount.value} ${p.statedAmount.currency})` : ""} · from {p.from} · ledger {p.ledgerIndex ?? "pending"}</p></div>
         <Findings items={result.findings} />
         <p className="small muted">{result.rule}</p>

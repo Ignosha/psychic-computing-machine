@@ -19,9 +19,10 @@ export default async function Page({ searchParams }: P) {
   if (parsed && typeof parsed !== "string") { try { result = await preflight(parsed); } catch (e) { problem = (e as Error).message; } }
   return (
     <>
-      <section className="hero"><h1>Will this XRPL payment land?</h1>
+      <section className="hero"><p className="eyebrow">01 / Pre-flight · before you send</p><h1>Will this payment <em>land?</em></h1>
         <p className="lead">Check before you sign. A missing destination tag, an unactivated account or a missing trust line costs fees, strands funds or loses an exchange deposit. Pre-flight predicts the exact ledger result, and screens both sides for sanctions.</p></section>
       <form className="panel picker" method="get" style={{ gridTemplateColumns: "1fr 1fr" }}>
+        <div className="io-head"><span>Input / Payment</span><span>Read only</span></div>
         <input name="to" defaultValue={sp.to ?? ""} placeholder="Recipient address (r...)" required aria-label="Recipient" />
         <input name="from" defaultValue={sp.from ?? ""} placeholder="Your address (optional)" aria-label="Sender" />
         <input name="amount" defaultValue={sp.amount ?? ""} placeholder="Amount" required aria-label="Amount" />
@@ -32,7 +33,7 @@ export default async function Page({ searchParams }: P) {
       </form>
       {problem && <div className="card danger">{problem}</div>}
       {result && <>
-        <div className={`card ${result.verdict === "will_succeed" ? "ok" : result.verdict === "will_fail" ? "danger" : ""}`}><b>{LABEL[result.verdict]}</b>
+        <div className={`card ${result.verdict === "will_succeed" ? "ok" : result.verdict === "will_fail" ? "danger" : "verdict"}`}><b>{LABEL[result.verdict]}</b>
           <p className="small muted" style={{ margin: "4px 0 0" }}>Validated ledger {result.validatedLedgerIndex} · reserve {result.network.baseReserveXrp} XRP + {result.network.ownerReserveXrp} XRP per owned object</p></div>
         <Findings items={result.checks} />
         <p className="small muted">{result.note}</p>

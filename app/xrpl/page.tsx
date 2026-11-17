@@ -31,10 +31,12 @@ export default async function XrplPage({ searchParams }: P) {
   return (
     <>
       <section className="hero">
-        <h1>XRPL Counterparty Check</h1>
+        <p className="eyebrow">04 / Screen · who is on the other side</p>
+        <h1>Who are you <em>dealing</em> with?</h1>
         <p className="lead">Before you send XRP or tokens to an address, or accept funds from one: one check across OFAC sanctions (the address, who funded it and who it recently dealt with), the account&apos;s ledger settings, and, for token issuers, NOSHASHI&apos;s issuer authority certificate.</p>
       </section>
       <form className="panel vinform" method="get">
+        <div className="io-head" style={{ flexBasis: "100%" }}><span>Input / XRPL address</span><span>Read only</span></div>
         <label htmlFor="address" className="sr">XRPL address</label>
         <input id="address" name="address" defaultValue={address} placeholder="r... XRP Ledger address" required pattern="r[1-9A-HJ-NP-Za-km-z]{24,34}" autoComplete="off" spellCheck={false} style={{ textTransform: "none", letterSpacing: 0 }} />
         <button type="submit">Check</button>
@@ -42,7 +44,7 @@ export default async function XrplPage({ searchParams }: P) {
       {problem && <div className="card danger">{problem}</div>}
       {result && (
         <>
-          <div className={`card ${result.verdict === "clear" ? "ok" : result.verdict === "block" ? "danger" : ""}`}>
+          <div className={`card ${result.verdict === "clear" ? "ok" : result.verdict === "block" ? "danger" : "verdict"}`}>
             <b>{LABEL[result.verdict as keyof typeof LABEL]}</b>
             <p className="small muted" style={{ margin: "4px 0 0" }}>{result.address} · validated ledger {result.ledger.validatedLedgerIndex ?? "n/a"} · {new Date(result.checkedAt).toUTCString()}</p>
           </div>

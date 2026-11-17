@@ -16,9 +16,10 @@ export default async function Page({ searchParams }: P) {
   if (sp.currency && sp.issuer) { try { r = await tokenReport(sp.currency, sp.issuer.trim()); } catch (e) { problem = (e as Error).message; } }
   return (
     <>
-      <section className="hero"><h1>Is this XRPL token safe?</h1>
+      <section className="hero"><p className="eyebrow">03 / Assess · before you trade or list</p><h1>Is this token <em>sound?</em></h1>
         <p className="lead">Before you buy, list or accept a token: what its issuer can still do to you, whether the issuer is who it claims to be, whether there is real liquidity to exit, and NOSHASHI&apos;s authority certificate, graded A to F.</p></section>
       <form className="panel picker" method="get" style={{ gridTemplateColumns: "1fr 2fr auto" }}>
+        <div className="io-head"><span>Input / Token</span><span>Read only</span></div>
         <input name="currency" defaultValue={sp.currency ?? ""} placeholder="Code, e.g. RLUSD" required aria-label="Currency" />
         <input name="issuer" defaultValue={sp.issuer ?? ""} placeholder="Issuer address (r...)" required aria-label="Issuer" />
         <button type="submit">Grade token</button>
