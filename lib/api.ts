@@ -1,11 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 import * as billing from "./billing/accounts";
 import { planName, planRank, PLAN_ORDER, type Plan } from "./plans";
-import { classifyRemedy, defectSignals, METHODOLOGY, safetyScore } from "./insights";
-import {
-  decodeVin, getCampaign, getComplaintSummary, getRecalls, getSafetyRatings, parseDmy,
-  UpstreamError, REVALIDATE, type Recall, type SafetyRating,
-} from "./nhtsa";
+import { XrplError } from "./xrpl/client";
 
 // Two ways to authenticate:
 // 1. RapidAPI: when RAPIDAPI_PROXY_SECRET is set, requests forwarded by RapidAPI carry the proxy secret (one per listing,
@@ -30,7 +26,7 @@ function rapidApiAuthorized(req: Request) {
 export function json(body: unknown, status = 200, extraHeaders: Record<string, string> = {}) {
   return Response.json(body, {
     status,
-    headers: { ...CORS, "Cache-Control": status === 200 ? `private, max-age=${REVALIDATE}` : "no-store", ...extraHeaders },
+    headers: { ...CORS, "Cache-Control": "no-store", ...extraHeaders },
   });
 }
 export const error = (status: number, code: string, message: string) => json({ error: { code, message } }, status);
@@ -87,7 +83,7 @@ export function handler<C>(fn: (req: Request, ctx: C) => Promise<Response>, opts
       res = await fn(req, ctx);
     } catch (e) {
       if (e instanceof PaymentRequired) res = error(402, "insufficient_credits", `${e.message} Top up with USDC: GET /api/v1/billing/info.`);
-      else if (e instanceof UpstreamError) res = error(502, "upstream_unavailable", "The NHTSA data source is temporarily unavailable. Please retry shortly.");
+      else if (e instanceof XrplError) res = error(502, "xrpl_unavailable", e.message);
       else { console.error(e); res = error(500, "internal_error", "Unexpected error."); }
     }
     const k = keyCtx.get(req);
@@ -103,90 +99,5 @@ export function handler<C>(fn: (req: Request, ctx: C) => Promise<Response>, opts
   };
 }
 
-const NHTSA = "U.S. National Highway Traffic Safety Administration (NHTSA)";
 export const SANCTIONS_SOURCE = "Official sanctions lists: OFAC (U.S. Treasury), UN Security Council, European Union, UK FCDO";
-export const envelope = (data: unknown, source: string = NHTSA) => ({ data, meta: { source, generatedAt: new Date().toISOString() } });
-
-const iso = (t: number) => (t ? new Date(t).toISOString().slice(0, 10) : null);
-const mdyIso = (d: string) => {
-  const [m, dd, y] = (d || "").split("/").map(Number);
-  return y ? iso(Date.UTC(y, m - 1, dd)) : null;
-};
-const num = (v: string | undefined) => (v && /^\d+(\.\d+)?$/.test(v) ? Number(v) : null);
-
-export function formatRecall(r: Recall) {
-  return {
-    campaignNumber: r.NHTSACampaignNumber,
-    manufacturer: r.Manufacturer,
-    component: r.Component,
-    summary: r.Summary,
-    consequence: r.Consequence,
-    remedy: r.Remedy,
-    notes: r.Notes || null,
-    reportDate: iso(parseDmy(r.ReportReceivedDate)),
-    doNotDrive: !!r.parkIt,
-    parkOutside: !!r.parkOutSide,
-    overTheAirFix: !!r.overTheAirUpdate,
-    unitsAffected: r.PotentialNumberofUnitsAffected ?? null,
-    remedyType: classifyRemedy(r).type,
-    remedyPhased: classifyRemedy(r).phased,
-  };
-}
-
-const formatRating = (r: SafetyRating) => ({
-  vehicle: r.VehicleDescription,
-  overall: num(r.OverallRating),
-  frontal: num(r.OverallFrontCrashRating),
-  side: num(r.OverallSideCrashRating),
-  rollover: num(r.RolloverRating),
-});
-
-export async function vehicleReport(year: string | number, make: string, model: string) {
-  const [recalls, complaints, ratings] = await Promise.all([
-    getRecalls(year, make, model),
-    getComplaintSummary(year, make, model),
-    getSafetyRatings(year, make, model),
-  ]);
-  return {
-    vehicle: { year: Number(year), make: make.toUpperCase(), model: model.toUpperCase() },
-    recalls: {
-      count: recalls.length,
-      urgentCount: recalls.filter((r) => r.parkIt || r.parkOutSide).length,
-      items: recalls.map(formatRecall),
-    },
-    complaints: {
-      total: complaints.total,
-      matchedModels: complaints.matchedModels,
-      crashes: complaints.crashes,
-      fires: complaints.fires,
-      injuries: complaints.injuries,
-      deaths: complaints.deaths,
-      topComponents: complaints.byComponent,
-      recent: complaints.recent.map((c) => ({
-        id: c.odiNumber, components: c.components, summary: c.summary, crash: c.crash, fire: c.fire,
-        injuries: c.numberOfInjuries, deaths: c.numberOfDeaths,
-        incidentDate: mdyIso(c.dateOfIncident), filedDate: mdyIso(c.dateComplaintFiled),
-      })),
-    },
-    safetyRatings: ratings.map(formatRating),
-    safetyScore: { ...safetyScore(recalls, ratings), methodology: METHODOLOGY.safetyScore },
-  };
-}
-
-export async function defectReport(year: string | number, make: string, model: string) {
-  const [recalls, complaints] = await Promise.all([getRecalls(year, make, model), getComplaintSummary(year, make, model)]);
-  return {
-    vehicle: { year: Number(year), make: make.toUpperCase(), model: model.toUpperCase() },
-    complaintsTotal: complaints.total,
-    complaintModels: complaints.matchedModels,
-    complaintsLast12Months: complaints.last12Months,
-    recalledComponents: [...new Set(recalls.flatMap((r) => r.Component.split(/,(?! )/).map((c) => c.split(":")[0].trim())))],
-    signals: defectSignals(complaints, recalls, 10).map((s) => ({
-      component: s.component, complaints: s.count, last12Months: s.last12Months, prior12Months: s.prior12Months,
-      trend: s.trend, crashes: s.crashes, fires: s.fires, injuries: s.injuries, deaths: s.deaths, severity: s.severity,
-    })),
-    methodology: METHODOLOGY.defectSignals,
-  };
-}
-
-export { decodeVin, getCampaign };
+export const envelope = (data: unknown, source: string = SANCTIONS_SOURCE) => ({ data, meta: { source, generatedAt: new Date().toISOString() } });

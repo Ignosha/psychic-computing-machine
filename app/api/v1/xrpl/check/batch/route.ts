@@ -1,6 +1,6 @@
 import { callerPlan, chargeExtra, envelope, error, handler, json, options } from "@/lib/api";
 import { DISCLAIMER } from "@/lib/sanctions/api";
-import { pool } from "@/lib/insights";
+import { pool } from "@/lib/util";
 import { checkCounterparty } from "@/lib/xrpl/check";
 import { XRPL_SOURCE } from "@/lib/xrpl/route-source";
 

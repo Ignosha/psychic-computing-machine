@@ -5,6 +5,12 @@ const config: NextConfig = {
   outputFileTracingIncludes: {
     "/api/v1/sanctions/**": ["./data/sanctions.json"],
     "/sanctions/**": ["./data/sanctions.json"],
+    "/xrpl/**": ["./data/sanctions.json"],
+    "/xrpl": ["./data/sanctions.json"],
+    "/api-docs": ["./data/sanctions.json"],
+    "/": ["./data/sanctions.json"],
+    "/api/v1/xrpl/**": ["./data/sanctions.json"],
+    "/api/v1/billing/**": ["./data/sanctions.json"],
     "/sanctions": ["./data/sanctions.json"],
     "/api/cron/**": ["./data/sanctions.json"],
   },

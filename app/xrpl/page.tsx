@@ -79,7 +79,7 @@ export default async function XrplPage({ searchParams }: P) {
       )}
       <div className="panel">
         <h2 style={{ marginTop: 0 }}>Automate it</h2>
-        <p style={{ marginBottom: 0 }}>The same check by API, one address or 25 per call, paid by subscription or with prepaid credits in <b>XRP, RLUSD</b> or USDC: <Link href="/sanctions/api">API docs and pricing</Link>. Deeper XRPL liquidity and policy analysis: <a href="https://www.noshashi.app" rel="noopener">NOSHASHI</a>.</p>
+        <p style={{ marginBottom: 0 }}>The same check by API, one address or 25 per call, paid by subscription or with prepaid credits in <b>XRP, RLUSD</b> or USDC: <Link href="/api-docs">API docs and pricing</Link>. Deeper XRPL liquidity and policy analysis: <a href="https://www.noshashi.app" rel="noopener">NOSHASHI</a>.</p>
       </div>
     </>
   );

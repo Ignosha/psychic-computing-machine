@@ -60,3 +60,6 @@ pre{white-space:pre}
   .top .wrap{height:auto;padding-top:10px;padding-bottom:10px;flex-wrap:wrap;gap:4px 16px}
   nav{font-size:14px}
 }
+.promo{background:var(--text);color:var(--bg);font-size:13px;padding:7px 0}.promo a{color:var(--bg)}
+.toolcard{display:block;text-decoration:none;color:var(--text)}.toolcard:hover{border-color:var(--accent)}
+@media (max-width:640px){.picker{grid-template-columns:1fr!important}.picker>*{grid-column:auto!important}}

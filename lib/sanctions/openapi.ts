@@ -1,6 +1,6 @@
-import { SITE_URL } from "../site";
+import { SITE_NAME, SITE_URL } from "../site";
 
-const SANCTIONS_NAME = process.env.NEXT_PUBLIC_SANCTIONS_NAME || "Sanctions Screening API";
+const SANCTIONS_NAME = `${SITE_NAME} Crypto Compliance API`;
 const err = { $ref: "#/components/schemas/Error" };
 const errors = (extra: Record<string, string>) => Object.fromEntries(
   Object.entries({ "401": "Missing or invalid credentials", ...extra }).map(([k, d]) => [k, { description: d, content: { "application/json": { schema: err } } }]));
@@ -60,6 +60,33 @@ export const sanctionsOpenapi = {
         summary: "Screen many wallet addresses (Growth: 25, Business+: 100)", operationId: "screenWalletsBatch", tags: ["Crypto"],
         requestBody: { required: true, content: { "application/json": { schema: { type: "object", required: ["addresses"], properties: { addresses: { type: "array", maxItems: 100, items: { type: "string" } } } } } } },
         responses: { ...ok({ type: "object", properties: { summary: { type: "object", properties: { submitted: { type: "integer" }, screened: { type: "integer" }, failed: { type: "integer" }, sanctioned: { type: "integer" } } }, results: { type: "array", items: { $ref: "#/components/schemas/WalletResult" } } } }), ...errors({ "400": "Invalid body", "403": "Plan upgrade required" }) },
+      },
+    },
+    "/xrpl/preflight": {
+      get: {
+        summary: "Payment Pre-flight (1 credit): will this XRP or token payment succeed?", operationId: "xrplPreflight", tags: ["XRPL Payments"],
+        description: "Predicts the ledger result before signing: destination tag required (tecDST_TAG_NEEDED), unactivated recipient below reserve (tecNO_DST_INSUF_XRP), missing or full trust line (tecPATH_DRY / tecPATH_PARTIAL), frozen or unauthorized lines, deposit authorization (tecNO_PERMISSION), unfunded sender (tecUNFUNDED_PAYMENT), issuer transfer fees, and OFAC screening of both parties.",
+        parameters: [qp("to", "Recipient address", { type: "string" }, "rDsbeomae4FXwgQTJp9Rs64Qg9vDiTCdBv", true), qp("amount", "Amount (XRP, or token units)", { type: "string" }, "25", true),
+          qp("currency", "XRP or a token code", { type: "string" }, "XRP"), qp("issuer", "Token issuer (required unless XRP)", { type: "string" }),
+          qp("destinationTag", "Destination tag", { type: "integer" }, 12345), qp("from", "Sender address (enables balance and deposit-auth checks)", { type: "string" })],
+        responses: { ...ok({ type: "object", properties: { verdict: { type: "string", enum: ["will_succeed", "will_succeed_with_warnings", "will_fail"] }, checks: { type: "array", items: { type: "object", properties: { id: { type: "string" }, status: { type: "string", enum: ["pass", "warn", "fail"] }, message: { type: "string" }, ledgerResult: { type: "string" } } } }, validatedLedgerIndex: { type: "integer" } } }), ...errors({ "400": "Invalid parameters", "502": "XRPL nodes unavailable" }) },
+      },
+    },
+    "/xrpl/verify": {
+      get: {
+        summary: "Settlement Verify (1 credit): did I really get paid? Partial payments and counterfeit tokens", operationId: "xrplVerify", tags: ["XRPL Payments"],
+        description: "Given a transaction hash and what you expected, reports what was actually delivered (meta.delivered_amount), flags partial payments, counterfeit tokens (a major asset code from an issuer that fails xrp-ledger.toml verification), unvalidated or failed transactions, wrong destination or tag, and sanctioned senders. Verdict: settled, settled_with_warnings or not_settled.",
+        parameters: [qp("tx", "Transaction hash", { type: "string" }, undefined, true), qp("expectTo", "Your receiving address", { type: "string" }), qp("expectDestinationTag", "Expected destination tag", { type: "integer" }),
+          qp("expectAmount", "Minimum expected amount", { type: "string" }), qp("expectCurrency", "Expected currency (XRP or token code)", { type: "string" }, "RLUSD"), qp("expectIssuer", "Expected token issuer", { type: "string" }, "rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De")],
+        responses: { ...ok({ type: "object", properties: { verdict: { type: "string", enum: ["settled", "settled_with_warnings", "not_settled"] }, findings: { type: "array", items: { type: "object" } }, payment: { type: "object" }, issuer: { type: "object", nullable: true } } }), ...errors({ "400": "Invalid parameters", "404": "Transaction not found", "502": "XRPL nodes unavailable" }) },
+      },
+    },
+    "/xrpl/token": {
+      get: {
+        summary: "Token Risk Report (3 credits): A-F grade for any XRPL token", operationId: "xrplToken", tags: ["XRPL Tokens"],
+        description: "Issuer powers (freeze, clawback, transfer fee, blackholed), identity verified through the issuer's xrp-ledger.toml, XRP AMM pool depth and order books, circulating supply, NOSHASHI's issuer authority certificate, and OFAC screening of the issuer and its funding account, with a transparent scoring methodology.",
+        parameters: [qp("currency", "Token code", { type: "string" }, "RLUSD", true), qp("issuer", "Issuer address", { type: "string" }, "rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De", true)],
+        responses: { ...ok({ type: "object", properties: { grade: { type: "string", enum: ["A", "B", "C", "D", "F"] }, score: { type: "integer" }, factors: { type: "array", items: { type: "object" } }, issuer: { type: "object" }, liquidity: { type: "object" }, noshashiCertificate: { type: "object", nullable: true }, sanctions: { type: "object" }, methodology: { type: "string" } } }), ...errors({ "400": "Invalid parameters", "404": "Issuer not found", "502": "XRPL nodes unavailable" }) },
       },
     },
     "/xrpl/check": {
@@ -174,3 +201,22 @@ export const sanctionsOpenapi = {
     },
   },
 };
+
+// One OpenAPI document per marketplace listing (each listing is found by different searches).
+const LISTINGS = {
+  sanctions: { title: `${SITE_NAME} Sanctions & Crypto Wallet Screening API`, prefix: "/sanctions/",
+    description: "Screen people, companies, vessels and crypto wallets against OFAC (SDN + Consolidated), UN, EU and UK sanctions lists in one call, with fuzzy multilingual matching, DOB and country filters, batch screening, and daily monitoring with signed webhook alerts. Lists refresh every 6 hours." },
+  "xrpl-payments": { title: `${SITE_NAME} XRPL Payment Safety API`, paths: ["/xrpl/preflight", "/xrpl/verify", "/xrpl/check", "/xrpl/check/batch"],
+    description: "Stop failed and fraudulent XRP Ledger payments. Pre-flight predicts whether a payment will succeed before you sign it; Settlement Verify confirms what you were actually paid, catching partial payments and counterfeit tokens; Counterparty Check screens any address, its funder and its recent counterparties against OFAC." },
+  "xrpl-tokens": { title: `${SITE_NAME} XRPL Token Risk API`, paths: ["/xrpl/token"],
+    description: "Grade any XRP Ledger token A to F: issuer powers (freeze, clawback, fees, blackholed), verified issuer identity, AMM and order-book liquidity, supply, NOSHASHI's authority certificate, and sanctions on the issuer and its funder." },
+} as const;
+export type ListingId = keyof typeof LISTINGS | "all";
+export const LISTING_IDS = ["all", ...Object.keys(LISTINGS)] as ListingId[];
+
+export function specFor(id: ListingId) {
+  if (id === "all") return sanctionsOpenapi;
+  const l = LISTINGS[id];
+  const paths = Object.fromEntries(Object.entries(sanctionsOpenapi.paths).filter(([p]) => "prefix" in l ? p.startsWith(l.prefix) : (l.paths as readonly string[]).includes(p)));
+  return { ...sanctionsOpenapi, info: { ...sanctionsOpenapi.info, title: l.title, description: l.description }, paths };
+}

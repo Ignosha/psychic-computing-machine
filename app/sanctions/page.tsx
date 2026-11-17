@@ -73,7 +73,7 @@ export default async function SanctionsPage({ searchParams }: P) {
       )}
       <div className="panel">
         <h2 style={{ marginTop: 0 }}>Screening customers or payments?</h2>
-        <p>Automate it: the <Link href="/sanctions/api">Sanctions Screening API</Link> screens one name or 100 per call, with DOB and country filters, alias coverage and an audit ID for every screening.</p>
+        <p>Automate it: the <Link href="/api-docs">API</Link> screens one name or 100 per call, with DOB and country filters, alias coverage and an audit ID for every screening.</p>
       </div>
       <h2>Lists covered</h2>
       <div className="card tablewrap">
