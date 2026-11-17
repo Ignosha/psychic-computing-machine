@@ -27,9 +27,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </header>
         <main className="wrap">{children}</main>
         <footer className="wrap foot muted small">
-          <p>Data: U.S. National Highway Traffic Safety Administration (NHTSA) public APIs, refreshed every 6 hours. {SITE_NAME} is
-            an independent site, not affiliated with NHTSA or any manufacturer. Recall repairs are free at authorized dealers. Always confirm
-            open recalls for your exact vehicle at <a href="https://www.nhtsa.gov/recalls" rel="noopener">nhtsa.gov/recalls</a>.</p>
+          <p>Data sources: vehicle recalls, complaints and ratings from the U.S. National Highway Traffic Safety Administration (NHTSA);
+            sanctions from OFAC (U.S. Treasury), the UN Security Council, the EU and the UK FCDO; XRP Ledger facts from public validated
+            nodes; issuer authority certificates by <a href="https://www.noshashi.app" rel="noopener">NOSHASHI</a>. Data refreshes every 6 hours.
+            {" "}{SITE_NAME} is independent and not affiliated with any of these publishers or any vehicle manufacturer. Nothing here is legal advice.
+            Recall repairs are free at authorized dealers; confirm open recalls for your exact vehicle at <a href="https://www.nhtsa.gov/recalls" rel="noopener">nhtsa.gov/recalls</a>.</p>
         </footer>
       </body>
     </html>
