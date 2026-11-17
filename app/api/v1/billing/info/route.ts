@@ -26,8 +26,11 @@ export function GET() {
     chains: Object.entries(CHAINS).map(([name, c]) => ({ name, chainId: c.chain.id, usdcContract: c.usdc, confirmationsRequired: c.confirmations })),
     pricePerCreditUsdc: usd(CREDIT_PRICE_MICROS),
     creditCosts: {
-      "sanctions screen / wallet check / entity / vehicle report": 1,
+      "sanctions screen / wallet check / record lookup": 1,
+      "XRPL payment pre-flight": 1,
+      "XRPL settlement verify": 1,
       "XRPL counterparty check": 2,
+      "XRPL token risk report": 3,
       "batch requests": "1 per item",
       "adding monitored names": "1 per name (daily re-screening and alerts included)",
       "lists, balance, monitor/alert/webhook management": 0,

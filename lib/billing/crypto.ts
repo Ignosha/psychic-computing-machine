@@ -1,4 +1,5 @@
 // USDC payments verified directly on-chain through free public RPC nodes; no payment processor.
+import { SITE_NAME } from "../site";
 import { createPublicClient, http, isAddress, isHex, type Hex, type PublicClient } from "viem";
 import { base, mainnet } from "viem/chains";
 
@@ -17,7 +18,7 @@ export const CREDIT_PRICE_MICROS = BigInt(Math.round(Number(process.env.CREDIT_P
 export const MIN_PAYMENT_MICROS = BigInt(Math.round(Number(process.env.MIN_PAYMENT_USDC || "10") * 1e6));
 
 export const claimMessage = (chain: ChainName, tx: string, account: string | null) =>
-  `RecallRadar API credit claim\nChain: ${chain}\nTransaction: ${tx.toLowerCase()}\nAccount: ${account ?? "new"}`;
+  `${SITE_NAME} API credit claim\nChain: ${chain}\nTransaction: ${tx.toLowerCase()}\nAccount: ${account ?? "new"}`;
 
 const clients = new Map<ChainName, PublicClient>();
 const client = (c: ChainName) => {
