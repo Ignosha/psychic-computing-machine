@@ -58,7 +58,12 @@ function ofac(xml, source) {
   const published = normDate(doc.publshInformation?.Publish_Date?.replace(/^(\d{2})\/(\d{2})\/(\d{4})$/, "$3-$1-$2"));
   const entries = arr(doc.sdnEntry).map((e) => {
     const full = (o) => [txt(o.firstName), txt(o.lastName)].filter(Boolean).join(" ");
-    const ids = arr(e.idList?.id).filter((i) => !/secondary sanctions|gender|website|email|phone/i.test(txt(i.idType)));
+    const allIds = arr(e.idList?.id);
+    const ids = allIds.filter((i) => !/secondary sanctions|gender|website|email|phone|digital currency address/i.test(txt(i.idType)));
+    // Every listed crypto wallet, e.g. idType "Digital Currency Address - ETH" -> { chain: "ETH", address }.
+    const wallets = allIds.filter((i) => /^digital currency address/i.test(txt(i.idType)))
+      .map((i) => ({ chain: txt(i.idType).replace(/^digital currency address\s*-\s*/i, "").toUpperCase(), address: txt(i.idNumber) }))
+      .filter((w) => w.address);
     return {
       id: `${source.id.toLowerCase()}-${txt(e.uid)}`, source: source.id, type: typeOf(e.sdnType), name: full(e),
       aliases: uniq(arr(e.akaList?.aka).map(full)),
@@ -68,6 +73,7 @@ function ofac(xml, source) {
       addressCountries: uniq(arr(e.addressList?.address).map((a) => a.country)),
       programs: uniq(arr(e.programList?.program)),
       ids: ids.slice(0, 10).map((i) => ({ type: txt(i.idType), number: txt(i.idNumber), country: txt(i.idCountry) || undefined })),
+      wallets: wallets.length ? wallets : undefined,
       remarks: clip(txt(e.remarks)),
     };
   });

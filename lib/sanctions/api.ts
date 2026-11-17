@@ -33,7 +33,7 @@ export function formatEntry(e: SanctionsEntry, aliasLimit = 25) {
     id: e.id, source: e.source, sourceName: src?.name, type: e.type, name: e.name,
     aliases: (e.aliases ?? []).slice(0, aliasLimit), aliasCount: e.aliases?.length ?? 0,
     datesOfBirth: e.dob ?? [], placesOfBirth: e.pob ?? [], nationalities: e.countries ?? [], addressCountries: e.addressCountries ?? [],
-    programs: e.programs ?? [], identifiers: e.ids ?? [], listedOn: e.listedOn ?? null, remarks: e.remarks ?? null,
+    programs: e.programs ?? [], identifiers: e.ids ?? [], walletAddresses: e.wallets ?? [], listedOn: e.listedOn ?? null, remarks: e.remarks ?? null,
     euReference: e.euReference ?? undefined, sourceUrl: src?.url,
   };
 }

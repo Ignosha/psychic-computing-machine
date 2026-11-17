@@ -5,7 +5,7 @@ import { normalize, skeleton, tokens } from "./normalize";
 export type SanctionsEntry = {
   id: string; source: string; type: "individual" | "entity" | "vessel" | "aircraft"; name: string; aliases?: string[];
   dob?: string[]; pob?: string[]; countries?: string[]; addressCountries?: string[]; programs?: string[];
-  ids?: { type: string; number: string; country?: string }[]; listedOn?: string; remarks?: string; euReference?: string;
+  ids?: { type: string; number: string; country?: string }[]; wallets?: { chain: string; address: string }[]; listedOn?: string; remarks?: string; euReference?: string;
 };
 export type SourceInfo = { id: string; name: string; publisher: string; url: string; publishedAt: string | null; count: number };
 

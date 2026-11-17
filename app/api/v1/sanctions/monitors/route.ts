@@ -1,4 +1,4 @@
-import { callerPlan, envelope, error, handler, json, options } from "@/lib/api";
+import { callerPlan, chargeExtra, envelope, error, handler, json, options , SANCTIONS_SOURCE } from "@/lib/api";
 import { sanctionsMonitorLimit } from "@/lib/plans";
 import { DISCLAIMER, parseQuery } from "@/lib/sanctions/api";
 import { addMonitors, formatMonitor } from "@/lib/sanctions/monitor";
@@ -17,9 +17,9 @@ export const GET = handler<unknown>(async (req) => {
       rpc<MonitorRow[]>("mon_list", { p_owner: g.owner, p_limit: limit, p_offset: offset }),
       rpc<number>("mon_count", { p_owner: g.owner }),
     ]);
-    return json(envelope({ total, limit, offset, planLimit: sanctionsMonitorLimit(callerPlan(req)), monitors: rows.map(formatMonitor) }));
+    return json(envelope({ total, limit, offset, planLimit: sanctionsMonitorLimit(callerPlan(req)), monitors: rows.map(formatMonitor) }, SANCTIONS_SOURCE));
   } catch (e) { return storeError(e); }
-});
+}, { cost: 0 });
 
 // Body: {"items": [{"name": "...", "externalId": "cust-123", "type": "individual", "dob": "1980", "country": "France"}]}
 // Re-adding an item with the same externalId updates it.
@@ -40,8 +40,9 @@ export const POST = handler<unknown>(async (req) => {
     if (externalId) seen.add(externalId);
     items.push({ name: q.name, type: q.type, dob: q.dob, country: q.country, threshold: q.threshold, externalId });
   }
+  await chargeExtra(req, items.length - 1);
   try {
     const results = await addMonitors(g.owner, items, sanctionsMonitorLimit(callerPlan(req)));
-    return json({ ...envelope({ added: results.length, results }), disclaimer: DISCLAIMER });
+    return json({ ...envelope({ added: results.length, results }, SANCTIONS_SOURCE), disclaimer: DISCLAIMER });
   } catch (e) { return storeError(e); }
 });

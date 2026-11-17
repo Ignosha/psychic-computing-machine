@@ -1,4 +1,4 @@
-import { envelope, error, handler, json, options } from "@/lib/api";
+import { chargeExtra, envelope, error, handler, json, options } from "@/lib/api";
 import { decodeVinBatch, getRecalls, getSafetyRatings, VIN_RE } from "@/lib/nhtsa";
 import { METHODOLOGY, pool, safetyScore } from "@/lib/insights";
 
@@ -14,6 +14,7 @@ export const POST = handler<unknown>(async (req) => {
   if (!Array.isArray(raw) || !raw.length) return error(400, "invalid_params", 'Send JSON: {"vins": ["VIN1", "VIN2", ...]}');
   if (raw.length > MAX) return error(400, "too_many_vins", `At most ${MAX} VINs per request.`);
   const vins = [...new Set(raw.map((v) => String(v).toUpperCase().replace(/[^A-Z0-9]/g, "")))];
+  await chargeExtra(req, vins.length - 1);
   const valid = vins.filter((v) => VIN_RE.test(v));
   const decoded = valid.length ? await decodeVinBatch(valid) : [];
   const byVin = new Map(decoded.map((d) => [d.vin, d]));

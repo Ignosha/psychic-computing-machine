@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { listsInfo, parseQuery, runScreen } from "@/lib/sanctions/api";
+import { addressFormat, screenWallet, validAddress, walletCount } from "@/lib/sanctions/wallets";
 
 type P = { searchParams: Promise<Record<string, string | undefined>> };
 
@@ -17,21 +18,40 @@ export async function generateMetadata({ searchParams }: P): Promise<Metadata> {
 export default async function SanctionsPage({ searchParams }: P) {
   const sp = await searchParams;
   const info = listsInfo();
-  const q = sp.q ? parseQuery({ name: sp.q, dob: sp.dob || undefined, country: sp.country || undefined, limit: 5 }) : null;
+  // A wallet address gets an exact wallet lookup instead of name matching.
+  const wallet = sp.q && validAddress(sp.q) && addressFormat(sp.q.trim().replace(/^(ethereum|bitcoin|tron):/i, "")) !== "unknown" && !/\s/.test(sp.q.trim())
+    ? screenWallet(sp.q.trim()) : null;
+  const q = sp.q && !wallet ? parseQuery({ name: sp.q, dob: sp.dob || undefined, country: sp.country || undefined, limit: 5 }) : null;
   const result = q && typeof q !== "string" ? runScreen(q) : null;
   return (
     <>
       <section className="hero">
         <h1>Free sanctions check</h1>
-        <p className="lead">Search {info.totalRecords.toLocaleString()} sanctioned people, companies, vessels and aircraft on the official U.S. OFAC, UN, EU and UK lists. Handles misspellings, aliases, reordered and Cyrillic names.</p>
+        <p className="lead">Search {info.totalRecords.toLocaleString()} sanctioned people, companies, vessels and aircraft on the official U.S. OFAC, UN, EU and UK lists. Handles misspellings, aliases, reordered and Cyrillic names. Paste a crypto wallet address to check it against the {walletCount().toLocaleString()} sanctioned wallets OFAC publishes.</p>
       </section>
       <form className="panel picker sform" method="get">
-        <input name="q" defaultValue={sp.q ?? ""} placeholder="Full name or company" aria-label="Name" required minLength={2} maxLength={200} />
+        <input name="q" defaultValue={sp.q ?? ""} placeholder="Name, company or wallet address" aria-label="Name" required minLength={2} maxLength={200} />
         <input name="dob" defaultValue={sp.dob ?? ""} placeholder="Birth year" aria-label="Date of birth" pattern="\d{4}(-\d{2}(-\d{2})?)?" />
         <input name="country" defaultValue={sp.country ?? ""} placeholder="Country" aria-label="Country" />
         <button type="submit">Check</button>
       </form>
       {typeof q === "string" && <div className="card danger">{q}</div>}
+      {wallet && (
+        <>
+          <div className={`card ${wallet.sanctioned ? "danger" : "ok"}`}>
+            <b>{wallet.sanctioned ? "Sanctioned wallet" : "Not on the OFAC sanctioned wallet list"}</b>
+            <p className="small muted" style={{ margin: "4px 0 0" }}>{wallet.address} ({wallet.addressFormat}) · checked against lists fetched {new Date(wallet.listsVersion).toUTCString()}.</p>
+          </div>
+          {wallet.matches.map((m) => (
+            <article className="card" key={m.id + m.listedChain}>
+              <div className="tags"><span className="tag red">Listed {m.listedChain} address</span><span className="tag">{m.source.replace("_", " ")}</span><span className="tag">{m.type}</span></div>
+              <p style={{ margin: "8px 0 4px" }}><b>{m.name}</b></p>
+              <p className="small muted" style={{ margin: 0 }}>{[m.programs.length && `Programs: ${m.programs.join(", ")}`, `${m.walletAddresses.length} listed wallet${m.walletAddresses.length === 1 ? "" : "s"}`].filter(Boolean).join(" · ")}</p>
+            </article>
+          ))}
+          <p className="small muted">{wallet.coverage}</p>
+        </>
+      )}
       {result && (
         <>
           <div className={`card ${result.decision === "clear" ? "ok" : "danger"}`}>

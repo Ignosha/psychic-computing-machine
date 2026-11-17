@@ -42,6 +42,26 @@ export const sanctionsOpenapi = {
         responses: { ...ok({ $ref: "#/components/schemas/ScreenResult" }), ...errors({ "400": "Invalid body" }) },
       },
     },
+    "/wallet": {
+      get: {
+        summary: "Screen a crypto wallet address against OFAC's sanctioned wallets", operationId: "screenWallet", tags: ["Crypto"],
+        description: "Exact match against every digital currency address on the OFAC SDN list (Bitcoin, Ethereum and EVM chains, Tron, USDT, Monero, Litecoin, Solana and more). EVM and bech32 addresses match case-insensitively; base58 addresses match exactly.",
+        parameters: [qp("address", "Wallet address", { type: "string" }, "0x1CAb8177ACe78b1B6B1c393371F4f2dCAE40CbEB", true)],
+        responses: { ...ok({ $ref: "#/components/schemas/WalletResult" }), ...errors({ "400": "Invalid address" }) },
+      },
+      post: {
+        summary: "Screen a crypto wallet address (JSON body)", operationId: "screenWalletPost", tags: ["Crypto"],
+        requestBody: { required: true, content: { "application/json": { schema: { type: "object", required: ["address"], properties: { address: { type: "string" } } } } } },
+        responses: { ...ok({ $ref: "#/components/schemas/WalletResult" }), ...errors({ "400": "Invalid address" }) },
+      },
+    },
+    "/wallets/batch": {
+      post: {
+        summary: "Screen many wallet addresses (Growth: 25, Business+: 100)", operationId: "screenWalletsBatch", tags: ["Crypto"],
+        requestBody: { required: true, content: { "application/json": { schema: { type: "object", required: ["addresses"], properties: { addresses: { type: "array", maxItems: 100, items: { type: "string" } } } } } } },
+        responses: { ...ok({ type: "object", properties: { summary: { type: "object", properties: { submitted: { type: "integer" }, screened: { type: "integer" }, failed: { type: "integer" }, sanctioned: { type: "integer" } } }, results: { type: "array", items: { $ref: "#/components/schemas/WalletResult" } } } }), ...errors({ "400": "Invalid body", "403": "Plan upgrade required" }) },
+      },
+    },
     "/batch": {
       post: {
         summary: "Screen many names in one call (Growth plan: 25, Business+: 100)", operationId: "screenBatch", tags: ["Screening"],
@@ -106,7 +126,9 @@ export const sanctionsOpenapi = {
       },
     },
   },
+  security: [{ ApiKey: [] }],
   components: {
+    securitySchemes: { ApiKey: { type: "apiKey", in: "header", name: "X-API-Key", description: "Prepaid credit key bought with USDC on Base or Ethereum: GET /api/v1/billing/info. Marketplace subscribers use the marketplace's own key instead." } },
     schemas: {
       Error: { type: "object", properties: { error: { type: "object", properties: { code: { type: "string" }, message: { type: "string" } } } } },
       Monitor: { type: "object", properties: {
@@ -125,8 +147,15 @@ export const sanctionsOpenapi = {
         aliases: { type: "array", items: { type: "string" } }, aliasCount: { type: "integer" }, datesOfBirth: { type: "array", items: { type: "string" } },
         placesOfBirth: { type: "array", items: { type: "string" } }, nationalities: { type: "array", items: { type: "string" } },
         addressCountries: { type: "array", items: { type: "string" } }, programs: { type: "array", items: { type: "string" } },
+        walletAddresses: { type: "array", items: { type: "object", properties: { chain: { type: "string" }, address: { type: "string" } } } },
         identifiers: { type: "array", items: { type: "object", properties: { type: { type: "string" }, number: { type: "string" }, country: { type: "string" } } } },
         listedOn: { type: "string", nullable: true }, remarks: { type: "string", nullable: true }, sourceUrl: { type: "string" },
+      } },
+      WalletResult: { type: "object", properties: {
+        screeningId: { type: "string", format: "uuid" }, screenedAt: { type: "string", format: "date-time" }, address: { type: "string" },
+        addressFormat: { type: "string", enum: ["evm", "bitcoin", "tron", "litecoin", "monero", "solana-or-base58", "unknown"] },
+        sanctioned: { type: "boolean" }, decision: { type: "string", enum: ["clear", "sanctioned"] }, listsVersion: { type: "string" }, coverage: { type: "string" },
+        matches: { type: "array", items: { allOf: [{ type: "object", properties: { listedChain: { type: "string" }, listedAddress: { type: "string" } } }, { $ref: "#/components/schemas/Record" }] } },
       } },
       ScreenResult: { type: "object", properties: {
         screeningId: { type: "string", format: "uuid", description: "Store this for your audit trail" }, screenedAt: { type: "string", format: "date-time" },
