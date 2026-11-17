@@ -1,5 +1,5 @@
 import { error, json, options } from "@/lib/api";
-import { authenticate, billingEnabled, hashKey, newApiKey } from "@/lib/billing/accounts";
+import { authenticate, evmBillingEnabled, hashKey, newApiKey } from "@/lib/billing/accounts";
 import { CHAINS, claimMessage, creditsFor, isChain, PaymentError, verifyClaimSignature, verifyPayment } from "@/lib/billing/crypto";
 import { rpc } from "@/lib/sanctions/store";
 import { screenWallet } from "@/lib/sanctions/wallets";
@@ -9,7 +9,7 @@ export const OPTIONS = options;
 
 // Body: {"chain": "base", "txHash": "0x...", "signature": "0x..."}; optional X-API-Key header to top up an existing account.
 export async function POST(req: Request) {
-  if (!billingEnabled()) return error(503, "billing_unavailable", "Prepaid crypto credits are not enabled on this deployment yet.");
+  if (!evmBillingEnabled()) return error(503, "billing_unavailable", "USDC payments are not enabled on this deployment yet.");
   let body: { chain?: unknown; txHash?: unknown; signature?: unknown };
   try { body = await req.json(); } catch { return error(400, "invalid_json", 'Send JSON: {"chain": "base", "txHash": "0x...", "signature": "0x..."}'); }
   const { chain, txHash, signature } = body ?? {};

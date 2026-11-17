@@ -26,6 +26,7 @@ export default function SanctionsApi() {
         <li><b>Five lists, one call</b>, with each list’s official publication date returned so you can prove freshness.</li>
         <li><b>Fuzzy, multilingual matching:</b> misspellings, reordered names, hyphenation, legal suffixes (LLC, OOO, PJSC) and Cyrillic input. In our test of 400 real listed names: 100% found exact or reordered, 99.8% with a typo, 100% with first and last name only.</li>
         <li><b>Fewer false positives:</b> date-of-birth and country filters, plus a clear / potential / strong decision.</li>
+        <li><b>XRPL Counterparty Check:</b> one verdict on any XRP Ledger address: sanctions (the address, who funded it, and who it recently dealt with), account settings, and for token issuers NOSHASHI&apos;s issuer authority certificate. <a href="/xrpl">Try it free</a>.</li>
         <li><b>Crypto wallet screening:</b> check any wallet against every sanctioned address OFAC publishes (Bitcoin, Ethereum and EVM chains, Tron, USDT, Monero and more), one at a time or 100 per call.</li>
         <li><b>Ongoing monitoring:</b> save your customers once; once a day they are re-screened against any list changes and you get a signed webhook alert for any new match or delisting.</li>
         <li><b>Audit-ready:</b> every screening returns a unique ID, timestamp and the list snapshot version.</li>
@@ -38,7 +39,7 @@ export default function SanctionsApi() {
       <p className="small muted">Subscription billing, keys and quotas are handled by the API marketplace.</p>
       <h2>Or pay with crypto</h2>
       <div className="card">
-        <p style={{ marginTop: 0 }}>No subscription, no card: buy prepaid credits with <b>USDC on {Object.keys(CHAINS).map((c) => c[0].toUpperCase() + c.slice(1)).join(" or ")}</b> at <b>${(Number(CREDIT_PRICE_MICROS) / 1e6).toFixed(2)} per credit</b>. One credit = one screening, wallet check or report; batches cost one credit per item; failed calls are refunded. Credits never expire.</p>
+        <p style={{ marginTop: 0 }}>No subscription, no card: buy prepaid credits with <b>XRP or RLUSD on the XRP Ledger</b> (your own destination tag, credited automatically) or <b>USDC on {Object.keys(CHAINS).map((c) => c[0].toUpperCase() + c.slice(1)).join(" or ")}</b> at <b>${(Number(CREDIT_PRICE_MICROS) / 1e6).toFixed(2)} per credit</b>. One credit = one screening, wallet check or report; batches cost one credit per item; failed calls are refunded. Credits never expire.</p>
         <ol style={{ margin: 0, paddingLeft: 18 }}>
           <li>Send USDC from your own wallet to the address in <a href="/api/v1/billing/info"><code>/api/v1/billing/info</code></a>.</li>
           <li>Sign the claim message with the same wallet and <code>POST /api/v1/billing/claim</code>. Payments are verified directly on-chain.</li>

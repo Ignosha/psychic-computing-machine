@@ -2,8 +2,11 @@
 import { createHash, randomBytes } from "node:crypto";
 import { monitoringConfigured, rpc, StoreError } from "../sanctions/store";
 import { RECEIVER } from "./crypto";
+import { XRPL_RECEIVER } from "./xrpl";
 
-export const billingEnabled = () => monitoringConfigured() && Boolean(RECEIVER);
+export const evmBillingEnabled = () => monitoringConfigured() && Boolean(RECEIVER);
+export const xrplBillingEnabled = () => monitoringConfigured() && Boolean(XRPL_RECEIVER);
+export const billingEnabled = () => evmBillingEnabled() || xrplBillingEnabled();
 export const hashKey = (key: string) => createHash("sha256").update(key).digest("hex");
 export const newApiKey = () => `rr_live_${randomBytes(24).toString("base64url")}`;
 const KEY_RE = /^rr_live_[A-Za-z0-9_-]{32}$/;

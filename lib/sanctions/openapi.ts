@@ -26,9 +26,9 @@ export const sanctionsOpenapi = {
     title: SANCTIONS_NAME, version: "1.0.0",
     description: "Screen people, companies, vessels and aircraft against the official OFAC (SDN + Consolidated), UN Security Council, EU and UK sanctions lists in one call. Fuzzy, transliteration-aware matching (Latin and Cyrillic), alias coverage, DOB and country filters, and clear/potential/strong decisions. Lists refresh from the official publishers every 6 hours. Ongoing monitoring re-screens your saved names daily against any list changes and alerts you by webhook.",
   },
-  servers: [{ url: `${SITE_URL}/api/v1/sanctions` }],
+  servers: [{ url: `${SITE_URL}/api/v1` }],
   paths: {
-    "/screen": {
+    "/sanctions/screen": {
       get: {
         summary: "Screen one name", operationId: "screenGet", tags: ["Screening"],
         parameters: [qp("name", "Name to screen", { type: "string" }, "Vladimir Putin", true), qp("type", "Restrict to a record type", Query.properties.type),
@@ -42,7 +42,7 @@ export const sanctionsOpenapi = {
         responses: { ...ok({ $ref: "#/components/schemas/ScreenResult" }), ...errors({ "400": "Invalid body" }) },
       },
     },
-    "/wallet": {
+    "/sanctions/wallet": {
       get: {
         summary: "Screen a crypto wallet address against OFAC's sanctioned wallets", operationId: "screenWallet", tags: ["Crypto"],
         description: "Exact match against every digital currency address on the OFAC SDN list (Bitcoin, Ethereum and EVM chains, Tron, USDT, Monero, Litecoin, Solana and more). EVM and bech32 addresses match case-insensitively; base58 addresses match exactly.",
@@ -55,14 +55,22 @@ export const sanctionsOpenapi = {
         responses: { ...ok({ $ref: "#/components/schemas/WalletResult" }), ...errors({ "400": "Invalid address" }) },
       },
     },
-    "/wallets/batch": {
+    "/sanctions/wallets/batch": {
       post: {
         summary: "Screen many wallet addresses (Growth: 25, Business+: 100)", operationId: "screenWalletsBatch", tags: ["Crypto"],
         requestBody: { required: true, content: { "application/json": { schema: { type: "object", required: ["addresses"], properties: { addresses: { type: "array", maxItems: 100, items: { type: "string" } } } } } } },
         responses: { ...ok({ type: "object", properties: { summary: { type: "object", properties: { submitted: { type: "integer" }, screened: { type: "integer" }, failed: { type: "integer" }, sanctioned: { type: "integer" } } }, results: { type: "array", items: { $ref: "#/components/schemas/WalletResult" } } } }), ...errors({ "400": "Invalid body", "403": "Plan upgrade required" }) },
       },
     },
-    "/batch": {
+    "/xrpl/check": {
+      get: {
+        summary: "XRPL Counterparty Check (2 credits): sanctions + ledger state + NOSHASHI issuer certificate", operationId: "xrplCheck", tags: ["XRPL"],
+        description: "One verdict (clear / review / block) on an XRP Ledger address: OFAC listing of the address, its funding account and its direct counterparties in the last 200 transactions; account settings (destination tag required, deposit authorization, frozen); and for token issuers, clawback and NOSHASHI's issuer authority certificate with its SHA-256 digest. A check that could not run is reported as review, never clear.",
+        parameters: [qp("address", "XRPL classic address", { type: "string" }, "rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De", true)],
+        responses: { ...ok({ type: "object", properties: { verdict: { type: "string", enum: ["clear", "review", "block"] }, findings: { type: "array", items: { type: "object", properties: { code: { type: "string" }, severity: { type: "string", enum: ["block", "review", "info"] }, message: { type: "string" } } } }, sanctions: { type: "object" }, ledger: { type: "object" }, issuer: { type: "object", nullable: true } } }), ...errors({ "400": "Invalid address", "502": "XRPL nodes unavailable" }) },
+      },
+    },
+    "/sanctions/batch": {
       post: {
         summary: "Screen many names in one call (Growth plan: 25, Business+: 100)", operationId: "screenBatch", tags: ["Screening"],
         requestBody: { required: true, content: { "application/json": { schema: { type: "object", required: ["queries"], properties: { queries: { type: "array", maxItems: 100, items: Query } } },
@@ -73,7 +81,7 @@ export const sanctionsOpenapi = {
         } }), ...errors({ "400": "Invalid body or too many queries for your plan", "403": "Plan upgrade required" }) },
       },
     },
-    "/monitors": {
+    "/sanctions/monitors": {
       get: {
         summary: "List monitored names", operationId: "listMonitors", tags: ["Monitoring"],
         parameters: [qp("limit", "Page size (max 500)", { type: "integer" }, 100), qp("offset", "Offset", { type: "integer" }, 0)],
@@ -87,13 +95,13 @@ export const sanctionsOpenapi = {
         responses: { ...ok({ type: "object", properties: { added: { type: "integer" }, results: { type: "array", items: { type: "object", properties: { monitor: { $ref: "#/components/schemas/Monitor" }, currentScreening: { type: "object" } } } } } }), ...errors({ "400": "Invalid items", "403": "Monitor limit reached for your plan" }) },
       },
     },
-    "/monitors/{id}": {
+    "/sanctions/monitors/{id}": {
       get: { summary: "Get a monitored name", operationId: "getMonitor", tags: ["Monitoring"], parameters: [{ name: "id", in: "path", required: true, schema: { type: "string", format: "uuid" } }],
         responses: { ...ok({ $ref: "#/components/schemas/Monitor" }), ...errors({ "404": "Not found" }) } },
       delete: { summary: "Stop monitoring a name", operationId: "deleteMonitor", tags: ["Monitoring"], parameters: [{ name: "id", in: "path", required: true, schema: { type: "string", format: "uuid" } }],
         responses: { ...ok({ type: "object", properties: { deleted: { type: "string" } } }), ...errors({ "404": "Not found" }) } },
     },
-    "/alerts": {
+    "/sanctions/alerts": {
       get: {
         summary: "Alerts: a monitored name newly matches a list, or a match was delisted", operationId: "listAlerts", tags: ["Monitoring"],
         description: "Poll with after=<last alert id you processed>. Alerts are also pushed to your webhook if one is set.",
@@ -101,7 +109,7 @@ export const sanctionsOpenapi = {
         responses: { ...ok({ type: "object", properties: { count: { type: "integer" }, nextAfter: { type: "integer" }, alerts: { type: "array", items: { $ref: "#/components/schemas/Alert" } } } }), ...errors({}) },
       },
     },
-    "/webhook": {
+    "/sanctions/webhook": {
       get: { summary: "Current webhook URL", operationId: "getWebhook", tags: ["Monitoring"], responses: { ...ok({ type: "object", properties: { url: { type: "string", nullable: true } } }), ...errors({}) } },
       put: {
         summary: "Set the HTTPS URL that receives alerts (returns a signing secret)", operationId: "setWebhook", tags: ["Monitoring"],
@@ -111,14 +119,14 @@ export const sanctionsOpenapi = {
       },
       delete: { summary: "Remove the webhook", operationId: "deleteWebhook", tags: ["Monitoring"], responses: { ...ok({ type: "object", properties: { deleted: { type: "boolean" } } }), ...errors({}) } },
     },
-    "/entities/{id}": {
+    "/sanctions/entities/{id}": {
       get: {
         summary: "Full sanctions record, including every alias", operationId: "getEntity", tags: ["Records"],
         parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" }, example: "ofac_sdn-35096" }],
         responses: { ...ok({ $ref: "#/components/schemas/Record" }), ...errors({ "404": "Not found" }) },
       },
     },
-    "/lists": {
+    "/sanctions/lists": {
       get: {
         summary: "Lists covered, record counts and publication dates", operationId: "getLists", tags: ["Records"],
         responses: { ...ok({ type: "object", properties: { dataGeneratedAt: { type: "string", format: "date-time" }, totalRecords: { type: "integer" },

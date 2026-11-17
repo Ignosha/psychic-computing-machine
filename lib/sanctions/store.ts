@@ -27,7 +27,7 @@ export async function rpc<T>(fn: string, args: Record<string, unknown>): Promise
     const text = await res.text();
     const m = text.match(/monitor_limit: ([^"]+)/);
     if (m) throw new StoreError(m[1], "limit");
-    const known = text.match(/(insufficient_credits|invalid_key|already_claimed)/);
+    const known = text.match(/(insufficient_credits|invalid_key|already_claimed|unknown_tag)/);
     throw new StoreError(known ? known[1] : `Storage error (HTTP ${res.status})`, "unavailable");
   }
   return (await res.json()) as T;
