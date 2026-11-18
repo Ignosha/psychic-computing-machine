@@ -12,7 +12,7 @@ Images are in `marketing/promo-images/` (the private holder's address is hidden;
 | Day | Do this | Where |
 |---|---|---|
 | 1 | Post the **phishing** thread (§2A) with `inbox.png` | X |
-| 1 | Pin it; set your X bio: "Building NoshGuard: XRPL payment safety + sanctions screening API. Free tools ↓" + site link | X |
+| 1 | Pin it; set your X bio: "Building NoshGuard: XRPL payment safety + sanctions screening API. Free tools ↓" + site link. Add github.com/Ignosha/noshguard-examples to your profile links | X |
 | 2 | Post the **phishing** Reddit post (§3A) | r/XRP |
 | 3 | Post the developer post (§4) | XRPL Discord (#dev or #showcase), r/xrpl_dev if active |
 | 4 | Send 10 cold DMs/emails to **wallets** (§5A) | X DMs, email, Discord |
@@ -126,7 +126,8 @@ Built a set of read-only XRPL safety checks, free on the web and as an API:
 - **Account security**: control changes (takeover signal), address-poisoning look-alikes, phishing memos, recoverable reserve, escrow calendar
 - OFAC/UN/EU/UK screening on every party
 
-Validated ledgers via public nodes; every answer carries its ledger index. Zero-dependency JS/Python examples in the repo.
+Validated ledgers via public nodes; every answer carries its ledger index. Zero-dependency JS/Python examples:
+https://github.com/Ignosha/noshguard-examples
 Wallet and exchange devs: I'd especially value feedback on edge cases. https://noshguard.vercel.app/api-docs
 
 ---

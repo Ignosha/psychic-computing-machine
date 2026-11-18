@@ -71,6 +71,7 @@ curl "${base}/sanctions/wallet?address=0x..." -H "X-API-Key: YOUR_KEY"`}</pre>
 
       <h2>OpenAPI specs</h2>
       <p>{LISTING_IDS.map((id, i) => <span key={id}>{i ? " · " : ""}<a href={`/api/v1/openapi/${id}.json`}>{id}.json</a></span>)}</p>
+      <p>Code examples (JavaScript and Python, zero dependencies): <a href="https://github.com/Ignosha/noshguard-examples" rel="noopener">github.com/Ignosha/noshguard-examples ↗</a></p>
       <p className="small muted">Results are information for your own review, not legal or financial advice. A sanctions match is a potential match requiring human review.</p>
     </>
   );
