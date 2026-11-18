@@ -150,3 +150,4 @@ pre.card{white-space:pre;overflow-x:auto;background:var(--elevated)}
   .top .wrap{gap:12px 18px}.logo{letter-spacing:.18em}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.legal{max-width:760px}.legal h2{font-size:22px;margin-top:34px}.legal p,.legal li{line-height:1.65}.legal ul{padding-left:20px}.legal li{margin:6px 0}

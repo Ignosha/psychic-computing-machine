@@ -3,18 +3,42 @@
 Create **four separate APIs** in RapidAPI Studio (rapidapi.com/provider). Separate listings appear in more searches
 than one combined listing, and each targets a different buyer.
 
-## Setup steps (same for each listing)
-1. RapidAPI Studio → **Add API Project** → name it (below) → **Import OpenAPI** from the spec URL.
-2. **Base URL**: `https://noshguard.vercel.app/api/v1` (or your custom domain).
-3. **Settings → Security**: copy the **Proxy Secret**. After creating all three, send me the three secrets (or add them
-   yourself in Vercel → Settings → Environment Variables as `RAPIDAPI_PROXY_SECRET`, comma-separated) and redeploy.
-4. **Plans & Pricing**: create the plans below. Plan IDs must be the standard BASIC / PRO / ULTRA / MEGA, because the
-   API reads them from the `X-RapidAPI-Subscription` header to unlock batch sizes and monitoring limits.
-5. Paste the descriptions, pick the category, add the tags, upload a logo, set to **Public**.
-6. Send me each listing's public URL so I can add "Subscribe" buttons on the site (`NEXT_PUBLIC_API_MARKETPLACE_URL`).
+## Step-by-step (about 15 minutes per listing)
 
-Quota tip: RapidAPI counts requests, not credits. Heavier endpoints (Token Risk Report) can be given a request
-"weight" in RapidAPI's object-quota settings, or just keep request quotas at the numbers below.
+RapidAPI renames buttons from time to time; if a label below differs slightly, look for the closest match.
+
+**Once, before the first listing**
+1. Sign up at **rapidapi.com** (free). Use a business name you're happy for buyers to see, e.g. "NoshGuard".
+2. Open **rapidapi.com/studio** (Studio is the provider side).
+3. Set up payouts: profile picture → **Settings / Organization → Payouts** (PayPal or Payoneer). Without it, paid plans
+   cannot be published. RapidAPI keeps a marketplace fee (currently around 25%) from each sale.
+
+**For each of the four listings below**
+1. Studio → **Add API Project**. Enter the listing's name, short description and category (from the listing below).
+   Under "Specify using", choose **OpenAPI** and import the listing's **Spec** URL. If it only accepts a file, open the
+   spec URL in your browser, save the page as a `.json` file and upload that.
+2. **Hub Listing → General**:
+   - Logo: `public/icon-512.png` in this repo (or any square image).
+   - Long description: paste the listing's long description.
+   - Website: `https://noshguard.vercel.app`
+   - **Terms of Use**: `https://noshguard.vercel.app/terms`
+   - Add the tags.
+3. **Hub Listing → Gateway** (or **Settings → Gateway**): set the base URL to `https://noshguard.vercel.app/api/v1`.
+   Leave "Request transformation" off.
+4. **Gateway → Security / Firewall**: copy the **X-RapidAPI-Proxy-Secret** value. Keep it private: send it to me in
+   chat, or paste it yourself into Vercel → project **recallradar** → Settings → Environment Variables →
+   `RAPIDAPI_PROXY_SECRET` (all four secrets in one value, separated by commas), then **Redeploy**.
+5. **Hub Listing → Monetize → Plans**: create **Basic**, **Pro**, **Ultra** and **Mega** with the prices and request
+   quotas in the listing. Keep the standard plan names: the API reads `BASIC / PRO / ULTRA / MEGA` from RapidAPI's
+   `X-RapidAPI-Subscription` header to unlock batch sizes and monitoring. Set overage to "hard limit" on Basic.
+6. **Endpoints tab → Test endpoint** on one endpoint. A `200` with real ledger or sanctions data means the gateway works.
+   (A `401 unauthorized` means the proxy secret isn't in Vercel yet, or you haven't redeployed.)
+7. **Hub Listing → General → Visibility → Public**, then save. It usually appears in search within a day.
+8. Send me the public listing URL (looks like `rapidapi.com/<you>/api/<name>`). I'll add "Subscribe" buttons on the
+   site and in the docs.
+
+Quota tip: RapidAPI counts requests, not credits. Heavier endpoints (Token Risk Report, Counterparty Check) can be
+given a request "weight" in RapidAPI's object-quota settings, or just keep request quotas at the numbers below.
 
 ---
 
