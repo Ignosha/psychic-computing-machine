@@ -9,7 +9,13 @@ import { XrplError } from "./xrpl/client";
 // 2. Prepaid crypto credits: an "X-API-Key" bought with USDC (see /api/v1/billing). Each call deducts credits;
 //    failed calls (4xx/5xx) are refunded automatically.
 // In production with neither configured the API is closed unless API_PUBLIC=true, so it can't be used for free by accident.
-const SECRETS = (process.env.RAPIDAPI_PROXY_SECRET || "").split(",").map((s) => s.trim()).filter(Boolean);
+// Secrets can be in RAPIDAPI_PROXY_SECRET (comma-separated) and/or one variable per listing:
+// RAPIDAPI_PROXY_SECRET2, RAPIDAPI_PROXY_SECRET_TOKENS, etc. Every variable whose name starts with RAPIDAPI_PROXY_SECRET counts.
+const SECRETS = Object.entries(process.env)
+  .filter(([k]) => k.startsWith("RAPIDAPI_PROXY_SECRET"))
+  .flatMap(([, v]) => (v || "").split(","))
+  .map((s) => s.trim())
+  .filter(Boolean);
 const SECRET = SECRETS.length > 0;
 const PUBLIC = process.env.API_PUBLIC === "true";
 

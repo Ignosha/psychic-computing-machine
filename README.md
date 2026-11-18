@@ -36,7 +36,7 @@ In production the API returns 401 until RapidAPI or crypto billing is configured
 ## Configuration (Vercel environment variables)
 | Variable | Purpose |
 |---|---|
-| `RAPIDAPI_PROXY_SECRET` | RapidAPI proxy secret(s), comma-separated |
+| `RAPIDAPI_PROXY_SECRET`, `RAPIDAPI_PROXY_SECRET2`... | RapidAPI proxy secret(s): any variable starting with this name, each comma-separated |
 | `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `MONITORING_DB_SECRET` | Database for monitoring and crypto credits (apply `supabase/migrations/000{1,2,3}*.sql`, then `insert into monitoring.config values ('api_secret', '<secret>')`) |
 | `XRPL_RECEIVING_ADDRESS` | Your XRPL address for XRP/RLUSD payments |
 | `CRYPTO_RECEIVING_ADDRESS` | Your EVM address for USDC payments |
