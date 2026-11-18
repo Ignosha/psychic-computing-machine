@@ -1,4 +1,5 @@
 import { SITE_NAME, SITE_URL } from "../site";
+import { monitoringConfigured } from "./store";
 
 const SANCTIONS_NAME = `${SITE_NAME} Crypto Compliance API`;
 const err = { $ref: "#/components/schemas/Error" };
@@ -214,9 +215,15 @@ const LISTINGS = {
 export type ListingId = keyof typeof LISTINGS | "all";
 export const LISTING_IDS = ["all", ...Object.keys(LISTINGS)] as ListingId[];
 
+// Monitoring endpoints only appear in published specs once their database is configured,
+// so marketplace buyers never see endpoints that would answer "not enabled yet".
+const MONITORING_PATHS = ["/sanctions/monitors", "/sanctions/monitors/{id}", "/sanctions/alerts", "/sanctions/webhook"];
+
 export function specFor(id: ListingId) {
-  if (id === "all") return sanctionsOpenapi;
+  const live = monitoringConfigured();
+  const keep = (p: string) => live || !MONITORING_PATHS.includes(p);
+  if (id === "all") return { ...sanctionsOpenapi, paths: Object.fromEntries(Object.entries(sanctionsOpenapi.paths).filter(([p]) => keep(p))) };
   const l = LISTINGS[id];
-  const paths = Object.fromEntries(Object.entries(sanctionsOpenapi.paths).filter(([p]) => "prefix" in l ? p.startsWith(l.prefix) : (l.paths as readonly string[]).includes(p)));
-  return { ...sanctionsOpenapi, info: { ...sanctionsOpenapi.info, title: l.title, description: l.description }, paths };
+  const paths = Object.fromEntries(Object.entries(sanctionsOpenapi.paths).filter(([p]) => keep(p) && ("prefix" in l ? p.startsWith(l.prefix) : (l.paths as readonly string[]).includes(p))));
+  return { ...sanctionsOpenapi, info: { ...sanctionsOpenapi.info, title: l.title, description: live ? l.description : l.description.replace(", batch screening, and daily monitoring with signed webhook alerts", " and batch screening") }, paths };
 }

@@ -22,13 +22,14 @@ Quota tip: RapidAPI counts requests, not credits. Heavier endpoints (Token Risk 
 - **Spec**: `https://noshguard.vercel.app/api/v1/openapi/sanctions.json`
 - **Category**: Financial (or Data → Compliance if available)
 - **Tags**: sanctions, OFAC, AML, KYC, compliance, crypto, wallet screening, watchlist, PEP alternative, UN sanctions, EU sanctions, UK sanctions
-- **Short description** (<= 120 chars): Screen names and crypto wallets against OFAC, UN, EU and UK sanctions lists. Fuzzy matching, monitoring, webhooks.
+- **Short description** (<= 120 chars): Screen names and crypto wallets against OFAC, UN, EU and UK sanctions lists. Fuzzy, multilingual, batch.
 - **Long description**:
   > Screen customers, vendors and crypto wallets against five official sanctions lists (OFAC SDN and Consolidated, UN Security Council, EU, UK) in one call. 33,000+ records refreshed every 6 hours from the official publishers, including every crypto wallet address OFAC has listed (Bitcoin, Ethereum and EVM chains, Tron, USDT, Monero, and more).
   >
   > - Fuzzy, multilingual name matching: misspellings, reordered names, aliases, legal suffixes and Cyrillic input. Measured on 400 real listed names: 100% found exact, reordered and first + last only; 99.8% with a typo.
   > - Fewer false positives: date of birth and country filters, plus a clear / potential / strong decision.
-  > - Batch screening (up to 100 per call) and daily monitoring with HMAC-signed webhook alerts when a saved customer newly matches or is delisted.
+  > - Batch screening (up to 100 per call).
+  > - *(Add once monitoring is enabled: daily monitoring with HMAC-signed webhook alerts when a saved customer newly matches or is delisted.)*
   > - Audit-ready: every screening returns a unique ID, timestamp and list version.
   > - Free tier, no card.
 - **Plans**: BASIC Free 200 req/mo · PRO $199/mo 10,000 req · ULTRA $749/mo 100,000 req · MEGA $2,999/mo 1,000,000 req
