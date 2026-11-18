@@ -444,20 +444,7 @@
             }
         }
     },
-    "security": [
-        {
-            "ApiKey": []
-        }
-    ],
     "components": {
-        "securitySchemes": {
-            "ApiKey": {
-                "type": "apiKey",
-                "in": "header",
-                "name": "X-API-Key",
-                "description": "Prepaid credit key bought with XRP or RLUSD on the XRP Ledger, or USDC on Base or Ethereum: GET /api/v1/billing/info. Marketplace subscribers use the marketplace's own key instead."
-            }
-        },
         "schemas": {
             "Error": {
                 "type": "object",

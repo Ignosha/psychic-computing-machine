@@ -68,7 +68,10 @@ export async function chargeExtra(req: Request, credits: number) {
 // opts.cost: credits charged per call for API-key callers (default 1; 0 for free endpoints).
 export function handler<C>(fn: (req: Request, ctx: C) => Promise<Response>, opts: { minPlan?: Plan; planLabel?: string; cost?: number } = {}) {
   return async (req: Request, ctx: C) => {
-    const apiKey = req.headers.get("x-api-key");
+    // A request forwarded by the marketplace (valid proxy secret) is billed by the marketplace; ignore any X-API-Key
+    // its console may add. Only direct callers use prepaid crypto-credit keys.
+    const viaMarketplace = SECRET && rapidApiAuthorized(req);
+    const apiKey = viaMarketplace ? null : req.headers.get("x-api-key");
     if (apiKey) {
       const auth = await billing.authenticate(apiKey, opts.cost ?? 1);
       if (!auth.ok) return auth.response;

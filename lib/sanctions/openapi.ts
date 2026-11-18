@@ -259,5 +259,10 @@ export function specFor(id: ListingId) {
   if (id === "all") return { ...sanctionsOpenapi, paths: Object.fromEntries(Object.entries(sanctionsOpenapi.paths).filter(([p]) => keep(p))) };
   const l = LISTINGS[id];
   const paths = Object.fromEntries(Object.entries(sanctionsOpenapi.paths).filter(([p]) => keep(p) && ("prefix" in l ? p.startsWith(l.prefix) : (l.paths as readonly string[]).includes(p))));
-  return { ...sanctionsOpenapi, info: { ...sanctionsOpenapi.info, title: l.title, description: live ? l.description : l.description.replace(", batch screening, and daily monitoring with signed webhook alerts", " and batch screening") }, paths };
+  // Per-listing specs are what marketplaces import. They authenticate with their own key and proxy secret, so the
+  // prepaid X-API-Key scheme is left out; otherwise the marketplace console sends that header and the call is
+  // routed to crypto billing instead of the marketplace subscription.
+  const { security: _s, ...base } = sanctionsOpenapi;
+  const { securitySchemes: _ss, ...components } = sanctionsOpenapi.components;
+  return { ...base, components, info: { ...sanctionsOpenapi.info, title: l.title, description: live ? l.description : l.description.replace(", batch screening, and daily monitoring with signed webhook alerts", " and batch screening") }, paths };
 }
