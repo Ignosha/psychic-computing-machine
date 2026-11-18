@@ -102,7 +102,7 @@ export const sanctionsOpenapi = {
       get: {
         summary: "Inbox Threat Scan (2 credits): address poisoning, phishing memos, dust spam", operationId: "inboxScan", tags: ["XRPL Account Security"],
         description: "Scans recent incoming transactions for address-poisoning attempts (senders imitating the first and last characters of addresses this account has paid), links in memos, dust spam and OFAC-listed senders.",
-        parameters: [qp("address", "XRPL classic address", { type: "string" }, "rDsbeomae4FXwgQTJp9Rs64Qg9vDiTCdBv", true)],
+        parameters: [qp("address", "XRPL classic address", { type: "string" }, "rKyvBTU7UqAoHbQe3jgZee2W1SxgrK6b7m", true)],
         responses: { ...ok({ type: "object", properties: { verdict: { type: "string", enum: ["clear", "review", "block"] }, findings: { type: "array", items: { type: "object", properties: { id: { type: "string" }, severity: { type: "string" }, message: { type: "string" } } } } } }), ...errors({ "400": "Invalid address", "404": "Account not found", "502": "XRPL nodes unavailable" }) },
       },
     },
