@@ -13,7 +13,7 @@ Subscribe to the free **Basic** plan on any listing (no card). One RapidAPI key 
 | [Sanctions & Crypto Wallet Screening](https://rapidapi.com/Ignosha/api/noshguard-sanctions-crypto-wallet-screening) | Names and wallets vs OFAC, UN, EU, UK lists | 200 requests / month |
 | [XRPL Payment Safety](https://rapidapi.com/Ignosha/api/noshguard-xrpl-payment-safety) | Pre-flight, settlement verify, counterparty check | 200 requests / month |
 | [XRPL Token Risk](https://rapidapi.com/Ignosha/api/noshguard-xrpl-token-risk) | A to F grade for any XRPL token | 100 requests / month |
-| XRPL Account Security | Takeover signals, address poisoning, reserve recovery, escrow unlocks | 200 requests / month |
+| [XRPL Account Security](https://rapidapi.com/Ignosha/api/noshguard-xrpl-account-security) | Takeover signals, address poisoning, reserve recovery, escrow unlocks | 200 requests / month |
 
 ## 2. Run the examples
 ```bash

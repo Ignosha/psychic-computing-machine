@@ -55,8 +55,7 @@ Real XRPL Checks show up in your wallet. They never need a website.
 https://noshguard.vercel.app/xrpl/inbox
 
 6/ Wallets and exchanges: the same scan is an API, so you can warn users before they click.
-Free plan: https://rapidapi.com/Ignosha/api/noshguard-xrpl-payment-safety
-(Account Security API launching on RapidAPI this week.)
+Free plan: https://rapidapi.com/Ignosha/api/noshguard-xrpl-account-security
 
 ### B. Escrow unlock (post with `escrows.png`, before 1 December)
 1/ One XRP Ledger account holds 4,000,000,000 XRP in 12 time-locked escrows.
@@ -78,7 +77,7 @@ Check yours in one click (free, read only): https://noshguard.vercel.app/xrpl/tr
 
 2/ It also flags look-alike tokens (fake "USD"/"RLUSD" from unverified issuers), frozen lines and issuers that can claw tokens back.
 
-3/ Wallet devs: show users their recoverable XRP with one API call. Docs: https://noshguard.vercel.app/api-docs
+3/ Wallet devs: show users their recoverable XRP with one API call. Free plan: https://rapidapi.com/Ignosha/api/noshguard-xrpl-account-security
 
 ### D. Destination tags (post with `preflight.png`)
 1/ Sending XRP to an exchange without a destination tag is the #1 way people "lose" XRP.
@@ -143,8 +142,8 @@ Subject: Stopping failed sends before your users sign
 
 Hi {name}, I saw {wallet} on XRPL. Users "losing" XRP to missing destination tags, and clicking "incoming escrow"
 phishing memos, are the two most common XRPL support tickets. NoshGuard's API predicts a payment's ledger result before
-signing and flags phishing memos and look-alike addresses in the user's history, in one call each. Free plan to try it:
-https://rapidapi.com/Ignosha/api/noshguard-xrpl-payment-safety. I'm happy to run a free scan of {wallet}'s own accounts
+signing and flags phishing memos and look-alike addresses in the user's history, in one call each. Free plans to try it:
+https://rapidapi.com/Ignosha/api/noshguard-xrpl-payment-safety and https://rapidapi.com/Ignosha/api/noshguard-xrpl-account-security. I'm happy to run a free scan of {wallet}'s own accounts
 and send you the results. Want me to?
 
 ### B. Merchants and payment apps accepting XRP or RLUSD
