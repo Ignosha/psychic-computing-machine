@@ -31,6 +31,8 @@ export function GET() {
       "XRPL settlement verify": 1,
       "XRPL counterparty check": 2,
       "XRPL token risk report": 3,
+      "account control audit / inbox threat scan / trust line audit": 2,
+      "escrow unlock calendar": 1,
       "batch requests": "1 per item",
       "adding monitored names": "1 per name (daily re-screening and alerts included)",
       "lists, balance, monitor/alert/webhook management": 0,

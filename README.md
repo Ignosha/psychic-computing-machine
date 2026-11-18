@@ -10,9 +10,15 @@ Live: https://noshguard.vercel.app · Docs & pricing: `/api-docs` · Marketing k
 | **Settlement Verify**: what was actually delivered? Partial payments, counterfeit tokens (major codes from issuers failing xrp-ledger.toml verification), unvalidated/failed tx, wrong destination/tag, sanctioned sender | `GET/POST /api/v1/xrpl/verify` | 1 | `/xrpl/verify` |
 | **Token Risk Report**: A–F grade: issuer powers (freeze, clawback, fee, blackholed), verified identity, AMM/order-book liquidity, supply, NOSHASHI certificate, sanctions on issuer and funder | `GET /api/v1/xrpl/token` | 3 | `/xrpl/token` |
 | **XRPL Counterparty Check**: sanctions on an address, its funder and last-200-tx counterparties; account settings; issuer certificate | `GET/POST /api/v1/xrpl/check`, `POST /api/v1/xrpl/check/batch` | 2 | `/xrpl` |
+| **Account Control Audit**: master/regular key, multi-signing, recent control changes (takeover signal), sanctioned signers | `GET /api/v1/xrpl/control` | 2 | `/xrpl/control` |
+| **Inbox Threat Scan**: address poisoning, phishing memo links, dust spam, sanctioned senders | `GET /api/v1/xrpl/inbox` | 2 | `/xrpl/inbox` |
+| **Trust Line Audit**: empty lines removable to recover reserve; look-alike, frozen and risky holdings | `GET /api/v1/xrpl/trustlines` | 2 | `/xrpl/trustlines` |
+| **Escrow Unlock Calendar**: every escrow, releasable dates, XRP per month | `GET /api/v1/xrpl/escrows` | 1 | `/xrpl/escrows` |
 | **Sanctions & wallet screening**: OFAC SDN + Consolidated, UN, EU, UK (33,000+ records, 1,081 crypto wallets), fuzzy multilingual matching, batch, monitoring with signed webhooks | `/api/v1/sanctions/*` | 1 | `/sanctions` |
 
-OpenAPI per marketplace listing: `/api/v1/openapi/{all,sanctions,xrpl-payments,xrpl-tokens}.json`.
+OpenAPI per marketplace listing: `/api/v1/openapi/{all,sanctions,xrpl-payments,xrpl-tokens,xrpl-security}.json`.
+
+**XRPL node limits:** the free xrplcluster.com node allows about 10,000 request units per minute per IP; the client fails over to Ripple's public nodes on `slowDown`. At customer volume, point `XRPL_RPC_URLS` at a dedicated RPC provider.
 
 ## How the hard parts work
 - **Sanctions data**: `scripts/ingest-sanctions.mjs` downloads the five official lists; `.github/workflows/refresh-sanctions.yml` refreshes every 6 hours and refuses to publish a list that downloads or parses suspiciously small. Matching (`lib/sanctions/`): transliteration, legal-suffix removal, token Jaro-Winkler with reorder and middle-name tolerance; 400-name test: 100% exact/reordered/first+last, 99.8% with a typo.
@@ -34,7 +40,7 @@ In production the API returns 401 until RapidAPI or crypto billing is configured
 | `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `MONITORING_DB_SECRET` | Database for monitoring and crypto credits (apply `supabase/migrations/000{1,2,3}*.sql`, then `insert into monitoring.config values ('api_secret', '<secret>')`) |
 | `XRPL_RECEIVING_ADDRESS` | Your XRPL address for XRP/RLUSD payments |
 | `CRYPTO_RECEIVING_ADDRESS` | Your EVM address for USDC payments |
-| `CREDIT_PRICE_USDC` | Price per credit (default 0.02) |
+| `CREDIT_PRICE_USDC` | Price per credit (default 0.03) |
 | `CRON_SECRET` | Protects the daily monitoring job (already set) |
 | `NEXT_PUBLIC_SITE_NAME`, `NEXT_PUBLIC_SITE_URL` | Brand name and custom domain |
 | `NEXT_PUBLIC_API_MARKETPLACE_URL` | Your marketplace listing URL (adds a Subscribe button) |

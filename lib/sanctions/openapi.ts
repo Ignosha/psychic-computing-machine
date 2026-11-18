@@ -90,6 +90,38 @@ export const sanctionsOpenapi = {
         responses: { ...ok({ type: "object", properties: { grade: { type: "string", enum: ["A", "B", "C", "D", "F"] }, score: { type: "integer" }, factors: { type: "array", items: { type: "object" } }, issuer: { type: "object" }, liquidity: { type: "object" }, noshashiCertificate: { type: "object", nullable: true }, sanctions: { type: "object" }, methodology: { type: "string" } } }), ...errors({ "400": "Invalid parameters", "404": "Issuer not found", "502": "XRPL nodes unavailable" }) },
       },
     },
+    "/xrpl/control": {
+      get: {
+        summary: "Account Control Audit (2 credits): who can sign, and did that change recently?", operationId: "controlAudit", tags: ["XRPL Account Security"],
+        description: "Master key, regular key and multi-signing setup, plus every control change (SetRegularKey, SignerListSet, master key disabled or re-enabled) in recent history. A recent change is flagged as a takeover signal; signers on the OFAC list are blocked.",
+        parameters: [qp("address", "XRPL classic address", { type: "string" }, "rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De", true)],
+        responses: { ...ok({ type: "object", properties: { verdict: { type: "string", enum: ["clear", "review", "block"] }, findings: { type: "array", items: { type: "object", properties: { id: { type: "string" }, severity: { type: "string" }, message: { type: "string" } } } } } }), ...errors({ "400": "Invalid address", "404": "Account not found", "502": "XRPL nodes unavailable" }) },
+      },
+    },
+    "/xrpl/inbox": {
+      get: {
+        summary: "Inbox Threat Scan (2 credits): address poisoning, phishing memos, dust spam", operationId: "inboxScan", tags: ["XRPL Account Security"],
+        description: "Scans recent incoming transactions for address-poisoning attempts (senders imitating the first and last characters of addresses this account has paid), links in memos, dust spam and OFAC-listed senders.",
+        parameters: [qp("address", "XRPL classic address", { type: "string" }, "rDsbeomae4FXwgQTJp9Rs64Qg9vDiTCdBv", true)],
+        responses: { ...ok({ type: "object", properties: { verdict: { type: "string", enum: ["clear", "review", "block"] }, findings: { type: "array", items: { type: "object", properties: { id: { type: "string" }, severity: { type: "string" }, message: { type: "string" } } } } } }), ...errors({ "400": "Invalid address", "404": "Account not found", "502": "XRPL nodes unavailable" }) },
+      },
+    },
+    "/xrpl/trustlines": {
+      get: {
+        summary: "Trust Line Audit (2 credits): recoverable reserve and risky holdings", operationId: "trustlineAudit", tags: ["XRPL Account Security"],
+        description: "Lists empty trust lines that can be removed to release owner reserve, and flags holdings of look-alike tokens (major asset codes from unverified issuers), frozen lines, clawback-capable and OFAC-listed issuers.",
+        parameters: [qp("address", "XRPL classic address", { type: "string" }, "rKyvBTU7UqAoHbQe3jgZee2W1SxgrK6b7m", true)],
+        responses: { ...ok({ type: "object", properties: { verdict: { type: "string", enum: ["clear", "review", "block"] }, findings: { type: "array", items: { type: "object", properties: { id: { type: "string" }, severity: { type: "string" }, message: { type: "string" } } } } } }), ...errors({ "400": "Invalid address", "404": "Account not found", "502": "XRPL nodes unavailable" }) },
+      },
+    },
+    "/xrpl/escrows": {
+      get: {
+        summary: "Escrow Unlock Calendar (1 credit): upcoming escrow releases", operationId: "escrowCalendar", tags: ["XRPL Account Security"],
+        description: "Every escrow on an account with amounts, releasable-from and expiry dates, conditional flags, the next release and XRP releasable per month.",
+        parameters: [qp("address", "XRPL classic address", { type: "string" }, "r9UUEXn3cx2seufBkDa8F86usfjWM6HiYp", true)],
+        responses: { ...ok({ type: "object", properties: { verdict: { type: "string", enum: ["clear", "review", "block"] }, findings: { type: "array", items: { type: "object", properties: { id: { type: "string" }, severity: { type: "string" }, message: { type: "string" } } } } } }), ...errors({ "400": "Invalid address", "404": "Account not found", "502": "XRPL nodes unavailable" }) },
+      },
+    },
     "/xrpl/check": {
       get: {
         summary: "XRPL Counterparty Check (2 credits): sanctions + ledger state + NOSHASHI issuer certificate", operationId: "xrplCheck", tags: ["XRPL"],
@@ -209,6 +241,8 @@ const LISTINGS = {
     description: "Screen people, companies, vessels and crypto wallets against OFAC (SDN + Consolidated), UN, EU and UK sanctions lists in one call, with fuzzy multilingual matching, DOB and country filters, batch screening, and daily monitoring with signed webhook alerts. Lists refresh every 6 hours." },
   "xrpl-payments": { title: `${SITE_NAME} XRPL Payment Safety API`, paths: ["/xrpl/preflight", "/xrpl/verify", "/xrpl/check", "/xrpl/check/batch"],
     description: "Stop failed and fraudulent XRP Ledger payments. Pre-flight predicts whether a payment will succeed before you sign it; Settlement Verify confirms what you were actually paid, catching partial payments and counterfeit tokens; Counterparty Check screens any address, its funder and its recent counterparties against OFAC." },
+  "xrpl-security": { title: `${SITE_NAME} XRPL Account Security API`, paths: ["/xrpl/control", "/xrpl/inbox", "/xrpl/trustlines", "/xrpl/escrows"],
+    description: "Security checks for XRP Ledger accounts: who can sign and whether control changed recently (takeover signal), address-poisoning and phishing-memo detection, trust-line audits that find recoverable XRP reserve and look-alike tokens, and escrow unlock calendars." },
   "xrpl-tokens": { title: `${SITE_NAME} XRPL Token Risk API`, paths: ["/xrpl/token"],
     description: "Grade any XRP Ledger token A to F: issuer powers (freeze, clawback, fees, blackholed), verified issuer identity, AMM and order-book liquidity, supply, NOSHASHI's authority certificate, and sanctions on the issuer and its funder." },
 } as const;

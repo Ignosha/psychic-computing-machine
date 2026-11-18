@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 const MARKET = process.env.NEXT_PUBLIC_API_MARKETPLACE_URL || process.env.NEXT_PUBLIC_SANCTIONS_MARKETPLACE_URL || "";
 const COSTS = [
   ["Sanctions name screen, wallet check, record lookup", 1], ["XRPL Payment Pre-flight", 1], ["XRPL Settlement Verify", 1],
-  ["XRPL Counterparty Check", 2], ["XRPL Token Risk Report", 3], ["Batch requests", "per item"], ["Monitored names", "1 each, daily re-screening included"],
+  ["XRPL Counterparty Check", 2], ["XRPL Token Risk Report", 3], ["Account Control Audit", 2], ["Inbox Threat Scan", 2], ["Trust Line Audit", 2], ["Escrow Unlock Calendar", 1], ["Batch requests", "per item"], ["Monitored names", "1 each, daily re-screening included"],
   ["Lists, balance, monitor/alert/webhook management", 0],
 ] as const;
 

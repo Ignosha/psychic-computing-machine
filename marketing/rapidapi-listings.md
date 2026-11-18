@@ -1,6 +1,6 @@
 # RapidAPI listings
 
-Create **three separate APIs** in RapidAPI Studio (rapidapi.com/provider). Separate listings appear in more searches
+Create **four separate APIs** in RapidAPI Studio (rapidapi.com/provider). Separate listings appear in more searches
 than one combined listing, and each targets a different buyer.
 
 ## Setup steps (same for each listing)
@@ -32,7 +32,7 @@ Quota tip: RapidAPI counts requests, not credits. Heavier endpoints (Token Risk 
   > - *(Add once monitoring is enabled: daily monitoring with HMAC-signed webhook alerts when a saved customer newly matches or is delisted.)*
   > - Audit-ready: every screening returns a unique ID, timestamp and list version.
   > - Free tier, no card.
-- **Plans**: BASIC Free 200 req/mo · PRO $199/mo 10,000 req · ULTRA $749/mo 100,000 req · MEGA $2,999/mo 1,000,000 req
+- **Plans**: BASIC Free 200 req/mo · PRO $299/mo 10,000 req · ULTRA $999/mo 100,000 req · MEGA $3,999/mo 1,000,000 req
 
 ## Listing 2: NoshGuard XRPL Payment Safety
 - **Spec**: `https://noshguard.vercel.app/api/v1/openapi/xrpl-payments.json`
@@ -65,4 +65,21 @@ Quota tip: RapidAPI counts requests, not credits. Heavier endpoints (Token Risk 
   > - NOSHASHI's issuer authority certificate (verdict, failed checks, SHA-256 digest, verify link);
   > - OFAC screening of the issuer and the account that funded it;
   > - a transparent A-F score with the published methodology.
-- **Plans**: BASIC Free 100 req/mo · PRO $99/mo 5,000 req · ULTRA $399/mo 50,000 req · MEGA $1,499/mo 500,000 req
+- **Plans**: BASIC Free 100 req/mo · PRO $149/mo 5,000 req · ULTRA $549/mo 50,000 req · MEGA $1,999/mo 500,000 req
+
+## Listing 4: NoshGuard XRPL Account Security
+- **Spec**: `https://noshguard.vercel.app/api/v1/openapi/xrpl-security.json`
+- **Category**: Cryptocurrency (or Security)
+- **Tags**: XRPL, XRP Ledger, account security, address poisoning, phishing, account takeover, multisig, regular key, trust lines, reserve, escrow, wallet security
+- **Short description**: XRPL account security: takeover signals, address-poisoning and phishing detection, reserve recovery, escrow unlocks.
+- **Long description**:
+  > Four checks that protect XRP Ledger accounts, not just payments:
+  >
+  > **Control Audit**: who can sign (master key, regular key, multi-signing) and every recent control change. A key change just before you send a large payment is a classic account-takeover signal.
+  >
+  > **Inbox Threat Scan**: finds address-poisoning attempts (senders imitating the first and last characters of addresses you have paid), phishing links in memos (e.g. fake "incoming escrow, finalize via ..." lures), dust spam and OFAC-listed senders.
+  >
+  > **Trust Line Audit**: empty trust lines you can remove to recover locked XRP reserve, plus holdings of look-alike tokens, frozen lines and risky issuers.
+  >
+  > **Escrow Unlock Calendar**: every escrow on an account, when each becomes releasable and how much XRP unlocks per month.
+- **Plans**: BASIC Free 200 req/mo · PRO $299/mo 10,000 req · ULTRA $999/mo 100,000 req · MEGA $3,999/mo 1,000,000 req

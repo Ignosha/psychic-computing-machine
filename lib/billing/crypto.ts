@@ -14,7 +14,7 @@ export const isChain = (c: unknown): c is ChainName => typeof c === "string" && 
 
 const rawReceiver = (process.env.CRYPTO_RECEIVING_ADDRESS || "").trim();
 export const RECEIVER = isAddress(rawReceiver) ? rawReceiver.toLowerCase() : "";
-export const CREDIT_PRICE_MICROS = BigInt(Math.round(Number(process.env.CREDIT_PRICE_USDC || "0.02") * 1e6)); // USDC has 6 decimals
+export const CREDIT_PRICE_MICROS = BigInt(Math.round(Number(process.env.CREDIT_PRICE_USDC || "0.03") * 1e6)); // USDC has 6 decimals
 export const MIN_PAYMENT_MICROS = BigInt(Math.round(Number(process.env.MIN_PAYMENT_USDC || "10") * 1e6));
 
 export const claimMessage = (chain: ChainName, tx: string, account: string | null) =>

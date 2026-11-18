@@ -66,6 +66,19 @@ export default function Home() {
         ))}
       </div>
 
+      <p className="eyebrow">Account security</p>
+      <h2>Protect the <em>account</em>, not just the payment.</h2>
+      <div className="cols" style={{ marginTop: 18 }}>
+        {[
+          { n: "05 / CONTROL", q: "Who can sign?", body: "Keys, multi-signing and recent control changes: the takeover signal to check before a large payment.", href: "/xrpl/control", cta: "Audit control" },
+          { n: "06 / INBOX", q: "Is someone baiting you?", body: "Address-poisoning look-alikes, phishing links in memos, dust spam and sanctioned senders.", href: "/xrpl/inbox", cta: "Scan an inbox" },
+          { n: "07 / TRUST LINES", q: "Where is your XRP locked?", body: "Empty lines you can remove to recover reserve, plus look-alike and frozen tokens you hold.", href: "/xrpl/trustlines", cta: "Audit trust lines" },
+          { n: "08 / ESCROW", q: "When does supply unlock?", body: "Every escrow on an account and how much becomes releasable each month.", href: "/xrpl/escrows", cta: "See the calendar" },
+        ].map((s) => (
+          <Link key={s.n} href={s.href} className="cols-item"><span className="label">{s.n}</span><h3>{s.q}</h3><p>{s.body}</p><span className="go">{s.cta} →</span></Link>
+        ))}
+      </div>
+
       <p className="eyebrow">Who it&apos;s for</p>
       <h2>Built for the desks that move <em>real</em> money.</h2>
       <div className="plans">
