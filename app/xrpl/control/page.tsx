@@ -26,7 +26,7 @@ export default async function Page({ searchParams }: P) {
         <h2>Control changes</h2>
         <div className="card tablewrap">{r.controlChanges.length ? <table><thead><tr><th>Date</th><th>Change</th></tr></thead><tbody>{r.controlChanges.map((c, i) => <tr key={i}><td>{c.date?.slice(0, 10)}</td><td>{c.change}</td></tr>)}</tbody></table> : <p className="small muted" style={{ margin: 0 }}>No control changes in the scanned history.</p>}</div>
       </>}
-      <ApiCta what="this check" />
+      <ApiCta what="this check" listing="xrpl-security" />
     </>
   );
 }

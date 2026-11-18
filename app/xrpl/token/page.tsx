@@ -41,7 +41,7 @@ export default async function Page({ searchParams }: P) {
             <p style={{ marginBottom: 0 }} className="muted">SHA-256 {r.noshashiCertificate.digest.slice(0, 24)}… · <a href={r.noshashiCertificate.verifyUrl} rel="noopener">Verify on NOSHASHI</a></p></div></>}
         <p className="small muted">{r.methodology}</p>
       </>}
-      <ApiCta what="token risk reports" />
+      <ApiCta what="token risk reports" listing="xrpl-tokens" />
     </>
   );
 }

@@ -26,7 +26,7 @@ export default async function Page({ searchParams }: P) {
         <div className="card tablewrap"><table><thead><tr><th>Token</th><th>Balance</th><th>Issuer</th><th>Flags</th></tr></thead><tbody>{r.holdings.slice(0, 25).map((h, i) => <tr key={i}><td>{h.currency}</td><td>{Number(h.balance).toLocaleString()}</td><td>{h.issuerName ?? <code>{h.issuer.slice(0, 10)}…</code>}{h.issuerVerified ? " ✓" : ""}</td><td>{h.flags.map((f) => <span key={f} className={f === "issuer_can_claw_back" ? "tag" : "tag red"}>{f.replace(/_/g, " ")}</span>)}</td></tr>)}</tbody></table></div>
         <p className="small muted">{r.note}</p>
       </>}
-      <ApiCta what="this check" />
+      <ApiCta what="this check" listing="xrpl-security" />
     </>
   );
 }

@@ -23,7 +23,7 @@ export default async function Page({ searchParams }: P) {
         {r.upcomingXrpByMonth.length > 0 && <><h2>Upcoming XRP by month</h2><div className="card tablewrap"><table><thead><tr><th>Month</th><th>XRP releasable</th></tr></thead><tbody>{r.upcomingXrpByMonth.map((m) => <tr key={m.month}><td>{m.month}</td><td>{m.xrp.toLocaleString()}</td></tr>)}</tbody></table></div></>}
         <p className="small muted">{r.note}</p>
       </>}
-      <ApiCta what="this check" />
+      <ApiCta what="this check" listing="xrpl-security" />
     </>
   );
 }

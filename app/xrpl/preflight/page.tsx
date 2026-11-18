@@ -38,7 +38,7 @@ export default async function Page({ searchParams }: P) {
         <Findings items={result.checks} />
         <p className="small muted">{result.note}</p>
       </>}
-      <ApiCta what="pre-flight" />
+      <ApiCta what="pre-flight" listing="xrpl-payments" />
     </>
   );
 }

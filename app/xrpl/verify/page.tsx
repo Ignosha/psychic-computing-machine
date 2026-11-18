@@ -43,7 +43,7 @@ export default async function Page({ searchParams }: P) {
         <Findings items={result.findings} />
         <p className="small muted">{result.rule}</p>
       </>}
-      <ApiCta what="settlement verification" />
+      <ApiCta what="settlement verification" listing="xrpl-payments" />
     </>
   );
 }

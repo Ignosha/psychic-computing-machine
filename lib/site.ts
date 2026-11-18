@@ -10,7 +10,7 @@ export const LEGAL_UPDATED = "2026-11-18";
 // Public RapidAPI listing pages, one per product. Fill in as each listing goes live.
 export const LISTING_URLS: Record<"sanctions" | "xrpl-payments" | "xrpl-tokens" | "xrpl-security", string> = {
   sanctions: "https://rapidapi.com/Ignosha/api/noshguard-sanctions-crypto-wallet-screening",
-  "xrpl-payments": "",
+  "xrpl-payments": "https://rapidapi.com/Ignosha/api/noshguard-xrpl-payment-safety",
   "xrpl-tokens": "",
   "xrpl-security": "",
 };

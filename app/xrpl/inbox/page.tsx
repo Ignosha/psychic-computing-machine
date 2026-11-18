@@ -25,7 +25,7 @@ export default async function Page({ searchParams }: P) {
         {r.phishingMemos.length > 0 && <><h2>Links in memos</h2><div className="card tablewrap"><table><thead><tr><th>Link</th><th>From</th><th>Date</th></tr></thead><tbody>{r.phishingMemos.map((p, i) => <tr key={i}><td><code>{p.url}</code></td><td><code>{p.from}</code></td><td>{p.date?.slice(0, 10)}</td></tr>)}</tbody></table></div></>}
         <p className="small muted">{r.note}</p>
       </>}
-      <ApiCta what="this check" />
+      <ApiCta what="this check" listing="xrpl-security" />
     </>
   );
 }

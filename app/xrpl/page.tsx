@@ -1,3 +1,4 @@
+import { LISTING_URLS } from "@/lib/site";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { checkCounterparty } from "@/lib/xrpl/check";
@@ -81,7 +82,7 @@ export default async function XrplPage({ searchParams }: P) {
       )}
       <div className="panel">
         <h2 style={{ marginTop: 0 }}>Automate it</h2>
-        <p style={{ marginBottom: 0 }}>The same check by API, one address or 25 per call, paid by subscription or with prepaid credits in <b>XRP, RLUSD</b> or USDC: <Link href="/api-docs">API docs and pricing</Link>. Deeper XRPL liquidity and policy analysis: <a href="https://www.noshashi.app" rel="noopener">NOSHASHI</a>.</p>
+        <p style={{ marginBottom: 0 }}>The same check by API, one address or 25 per call, paid by subscription or with prepaid credits in <b>XRP, RLUSD</b> or USDC: <Link href="/api-docs">API docs and pricing</Link>, or <a href={LISTING_URLS["xrpl-payments"]} rel="noopener">start free on RapidAPI ↗</a>. Deeper XRPL liquidity and policy analysis: <a href="https://www.noshashi.app" rel="noopener">NOSHASHI</a>.</p>
       </div>
     </>
   );
