@@ -42,7 +42,7 @@ trial users; trial users who hit the free limit become paying customers.
 30 incoming transactions carried scam links in their memos. 27 were dust payments.
 Here's what XRPL phishing looks like right now 🧵
 
-2/ The most common lure, word for word:
+2/ One lure, word for word (it arrived 4 times):
 "⌛Incoming Escrow for 259.37 XRP Expires in 24 Hours. Finalize Escrow via [scam site]"
 There is no escrow. The site wants your wallet connection or seed.
 
