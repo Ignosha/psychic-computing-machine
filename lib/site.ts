@@ -11,7 +11,7 @@ export const LEGAL_UPDATED = "2026-11-18";
 export const LISTING_URLS: Record<"sanctions" | "xrpl-payments" | "xrpl-tokens" | "xrpl-security", string> = {
   sanctions: "https://rapidapi.com/Ignosha/api/noshguard-sanctions-crypto-wallet-screening",
   "xrpl-payments": "https://rapidapi.com/Ignosha/api/noshguard-xrpl-payment-safety",
-  "xrpl-tokens": "",
+  "xrpl-tokens": "https://rapidapi.com/Ignosha/api/noshguard-xrpl-token-risk",
   "xrpl-security": "",
 };
 export const LISTING_LABELS = { sanctions: "Sanctions & Crypto Wallet Screening", "xrpl-payments": "XRPL Payment Safety", "xrpl-tokens": "XRPL Token Risk", "xrpl-security": "XRPL Account Security" } as const;
