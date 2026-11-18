@@ -115,6 +115,6 @@ Failed calls are not charged.
 
 ## Important
 Results are automated screening, not a legal determination. A match is a potential match that needs human review; a clear result does not guarantee a party is not sanctioned. You remain responsible for your own compliance decisions.
-[Terms](https://noshguard.vercel.app/terms) · [Privacy](https://noshguard.vercel.app/privacy) · Free web tool: [noshguard.vercel.app/sanctions](https://noshguard.vercel.app/sanctions)
+Support: noshguard.support@gmail.com · [Terms](https://noshguard.vercel.app/terms) · [Privacy](https://noshguard.vercel.app/privacy) · Free web tool: [noshguard.vercel.app/sanctions](https://noshguard.vercel.app/sanctions)
 
 A [NOSHASHI](https://www.noshashi.app) product.

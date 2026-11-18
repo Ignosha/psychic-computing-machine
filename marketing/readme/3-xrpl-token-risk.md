@@ -78,6 +78,6 @@ Failed calls are not charged.
 
 ## Important
 A grade is an automated opinion from public data, not investment advice or a recommendation to buy or sell.
-[Terms](https://noshguard.vercel.app/terms) · [Privacy](https://noshguard.vercel.app/privacy) · Free web tool: [noshguard.vercel.app/xrpl/token](https://noshguard.vercel.app/xrpl/token)
+Support: noshguard.support@gmail.com · [Terms](https://noshguard.vercel.app/terms) · [Privacy](https://noshguard.vercel.app/privacy) · Free web tool: [noshguard.vercel.app/xrpl/token](https://noshguard.vercel.app/xrpl/token)
 
 A [NOSHASHI](https://www.noshashi.app) product.

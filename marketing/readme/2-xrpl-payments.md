@@ -107,6 +107,6 @@ Failed calls are not charged.
 
 ## Important
 Read only: never asks for keys and never signs. Predictions use the ledger at the stated index; state can change before you submit. Information for your own review, not financial or legal advice.
-[Terms](https://noshguard.vercel.app/terms) · [Privacy](https://noshguard.vercel.app/privacy) · Free web tools: [noshguard.vercel.app](https://noshguard.vercel.app)
+Support: noshguard.support@gmail.com · [Terms](https://noshguard.vercel.app/terms) · [Privacy](https://noshguard.vercel.app/privacy) · Free web tools: [noshguard.vercel.app](https://noshguard.vercel.app)
 
 A [NOSHASHI](https://www.noshashi.app) product.

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
 import { validatedLedger } from "@/lib/ledger-status";
-import { PARENT_BRAND, SITE_NAME, SITE_URL } from "@/lib/site";
+import { CONTACT_EMAIL, PARENT_BRAND, SITE_NAME, SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -54,7 +54,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <p>Data: sanctions from OFAC (U.S. Treasury), the UN Security Council, the EU and the UK FCDO, refreshed every 6 hours; XRP Ledger facts from public
             validated nodes at the ledger index shown; issuer identity from each issuer&apos;s own xrp-ledger.toml; issuer authority certificates by{" "}
             <a href={PARENT_BRAND.url} rel="noopener">{PARENT_BRAND.name}</a>. Read only: {SITE_NAME} never asks for keys and never signs. Results are information for your own review, not legal or financial advice.</p>
-          <p>{SITE_NAME} · a <a href={PARENT_BRAND.url} rel="noopener">{PARENT_BRAND.name}</a> product · <Link href="/api-docs">API &amp; pricing</Link> · <Link href="/terms">Terms</Link> · <Link href="/privacy">Privacy</Link></p>
+          <p>{SITE_NAME} · a <a href={PARENT_BRAND.url} rel="noopener">{PARENT_BRAND.name}</a> product · <Link href="/api-docs">API &amp; pricing</Link> · <Link href="/terms">Terms</Link> · <Link href="/privacy">Privacy</Link> · <a href={`mailto:${CONTACT_EMAIL}`}>Support</a></p>
         </footer>
       </body>
     </html>
