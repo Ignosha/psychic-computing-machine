@@ -1,0 +1,1253 @@
+{
+    "openapi": "3.0.3",
+    "info": {
+        "title": "NoshGuard Sanctions & Crypto Wallet Screening API",
+        "version": "1.0.0",
+        "description": "Screen people, companies, vessels and crypto wallets against OFAC (SDN + Consolidated), UN, EU and UK sanctions lists in one call, with fuzzy multilingual matching, DOB and country filters and batch screening. Lists refresh every 6 hours."
+    },
+    "servers": [
+        {
+            "url": "https://noshguard.vercel.app/api/v1"
+        }
+    ],
+    "paths": {
+        "/sanctions/screen": {
+            "get": {
+                "summary": "Screen one name",
+                "operationId": "screenGet",
+                "tags": [
+                    "Screening"
+                ],
+                "parameters": [
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "required": true,
+                        "description": "Name to screen",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "Vladimir Putin"
+                    },
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "required": false,
+                        "description": "Restrict to a record type",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "individual",
+                                "entity",
+                                "vessel",
+                                "aircraft"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "dob",
+                        "in": "query",
+                        "required": false,
+                        "description": "Date of birth",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "country",
+                        "in": "query",
+                        "required": false,
+                        "description": "Nationality or country",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "sources",
+                        "in": "query",
+                        "required": false,
+                        "description": "Comma-separated list IDs",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "OFAC_SDN,UN"
+                    },
+                    {
+                        "name": "threshold",
+                        "in": "query",
+                        "required": false,
+                        "description": "Minimum score",
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "description": "Max matches",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/ScreenResult"
+                                        },
+                                        "meta": {
+                                            "type": "object"
+                                        },
+                                        "disclaimer": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid parameters",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Missing or invalid credentials",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "summary": "Screen one name (JSON body)",
+                "operationId": "screenPost",
+                "tags": [
+                    "Screening"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "name"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "minLength": 2,
+                                        "maxLength": 200,
+                                        "example": "Vladimir Putin"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "individual",
+                                            "entity",
+                                            "vessel",
+                                            "aircraft"
+                                        ]
+                                    },
+                                    "dob": {
+                                        "type": "string",
+                                        "description": "YYYY, YYYY-MM or YYYY-MM-DD. Mismatches reduce the score.",
+                                        "example": "1952-10-07"
+                                    },
+                                    "country": {
+                                        "type": "string",
+                                        "description": "Nationality or address country. Mismatches reduce the score.",
+                                        "example": "Russia"
+                                    },
+                                    "sources": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "enum": [
+                                                "OFAC_SDN",
+                                                "OFAC_CONS",
+                                                "UN",
+                                                "EU",
+                                                "UK"
+                                            ]
+                                        }
+                                    },
+                                    "threshold": {
+                                        "type": "number",
+                                        "minimum": 0.5,
+                                        "maximum": 1,
+                                        "default": 0.88
+                                    },
+                                    "limit": {
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "maximum": 50,
+                                        "default": 10
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/ScreenResult"
+                                        },
+                                        "meta": {
+                                            "type": "object"
+                                        },
+                                        "disclaimer": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid body",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Missing or invalid credentials",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/sanctions/wallet": {
+            "get": {
+                "summary": "Screen a crypto wallet address against OFAC's sanctioned wallets",
+                "operationId": "screenWallet",
+                "tags": [
+                    "Crypto"
+                ],
+                "description": "Exact match against every digital currency address on the OFAC SDN list (Bitcoin, Ethereum and EVM chains, Tron, USDT, Monero, Litecoin, Solana and more). EVM and bech32 addresses match case-insensitively; base58 addresses match exactly.",
+                "parameters": [
+                    {
+                        "name": "address",
+                        "in": "query",
+                        "required": true,
+                        "description": "Wallet address",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "0x1CAb8177ACe78b1B6B1c393371F4f2dCAE40CbEB"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/WalletResult"
+                                        },
+                                        "meta": {
+                                            "type": "object"
+                                        },
+                                        "disclaimer": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid address",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Missing or invalid credentials",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "summary": "Screen a crypto wallet address (JSON body)",
+                "operationId": "screenWalletPost",
+                "tags": [
+                    "Crypto"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "address"
+                                ],
+                                "properties": {
+                                    "address": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/WalletResult"
+                                        },
+                                        "meta": {
+                                            "type": "object"
+                                        },
+                                        "disclaimer": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid address",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Missing or invalid credentials",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/sanctions/wallets/batch": {
+            "post": {
+                "summary": "Screen many wallet addresses (Growth: 25, Business+: 100)",
+                "operationId": "screenWalletsBatch",
+                "tags": [
+                    "Crypto"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "addresses"
+                                ],
+                                "properties": {
+                                    "addresses": {
+                                        "type": "array",
+                                        "maxItems": 100,
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "summary": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "submitted": {
+                                                            "type": "integer"
+                                                        },
+                                                        "screened": {
+                                                            "type": "integer"
+                                                        },
+                                                        "failed": {
+                                                            "type": "integer"
+                                                        },
+                                                        "sanctioned": {
+                                                            "type": "integer"
+                                                        }
+                                                    }
+                                                },
+                                                "results": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/WalletResult"
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object"
+                                        },
+                                        "disclaimer": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid body",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Missing or invalid credentials",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Plan upgrade required",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/sanctions/batch": {
+            "post": {
+                "summary": "Screen many names in one call (Growth plan: 25, Business+: 100)",
+                "operationId": "screenBatch",
+                "tags": [
+                    "Screening"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "queries"
+                                ],
+                                "properties": {
+                                    "queries": {
+                                        "type": "array",
+                                        "maxItems": 100,
+                                        "items": {
+                                            "type": "object",
+                                            "required": [
+                                                "name"
+                                            ],
+                                            "properties": {
+                                                "name": {
+                                                    "type": "string",
+                                                    "minLength": 2,
+                                                    "maxLength": 200,
+                                                    "example": "Vladimir Putin"
+                                                },
+                                                "type": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "individual",
+                                                        "entity",
+                                                        "vessel",
+                                                        "aircraft"
+                                                    ]
+                                                },
+                                                "dob": {
+                                                    "type": "string",
+                                                    "description": "YYYY, YYYY-MM or YYYY-MM-DD. Mismatches reduce the score.",
+                                                    "example": "1952-10-07"
+                                                },
+                                                "country": {
+                                                    "type": "string",
+                                                    "description": "Nationality or address country. Mismatches reduce the score.",
+                                                    "example": "Russia"
+                                                },
+                                                "sources": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "OFAC_SDN",
+                                                            "OFAC_CONS",
+                                                            "UN",
+                                                            "EU",
+                                                            "UK"
+                                                        ]
+                                                    }
+                                                },
+                                                "threshold": {
+                                                    "type": "number",
+                                                    "minimum": 0.5,
+                                                    "maximum": 1,
+                                                    "default": 0.88
+                                                },
+                                                "limit": {
+                                                    "type": "integer",
+                                                    "minimum": 1,
+                                                    "maximum": 50,
+                                                    "default": 10
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "example": {
+                                "queries": [
+                                    {
+                                        "name": "Vladimir Putin"
+                                    },
+                                    {
+                                        "name": "Jane Doe",
+                                        "dob": "1990-01-01",
+                                        "country": "Canada"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "summary": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "submitted": {
+                                                            "type": "integer"
+                                                        },
+                                                        "screened": {
+                                                            "type": "integer"
+                                                        },
+                                                        "failed": {
+                                                            "type": "integer"
+                                                        },
+                                                        "clear": {
+                                                            "type": "integer"
+                                                        },
+                                                        "potentialMatches": {
+                                                            "type": "integer"
+                                                        },
+                                                        "strongMatches": {
+                                                            "type": "integer"
+                                                        }
+                                                    }
+                                                },
+                                                "results": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "allOf": [
+                                                            {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "index": {
+                                                                        "type": "integer"
+                                                                    },
+                                                                    "status": {
+                                                                        "type": "string",
+                                                                        "enum": [
+                                                                            "ok",
+                                                                            "error"
+                                                                        ]
+                                                                    },
+                                                                    "error": {
+                                                                        "type": "string"
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                "$ref": "#/components/schemas/ScreenResult"
+                                                            }
+                                                        ]
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object"
+                                        },
+                                        "disclaimer": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid body or too many queries for your plan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Missing or invalid credentials",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Plan upgrade required",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/sanctions/entities/{id}": {
+            "get": {
+                "summary": "Full sanctions record, including every alias",
+                "operationId": "getEntity",
+                "tags": [
+                    "Records"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "ofac_sdn-35096"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/Record"
+                                        },
+                                        "meta": {
+                                            "type": "object"
+                                        },
+                                        "disclaimer": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Missing or invalid credentials",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/sanctions/lists": {
+            "get": {
+                "summary": "Lists covered, record counts and publication dates",
+                "operationId": "getLists",
+                "tags": [
+                    "Records"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "dataGeneratedAt": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "totalRecords": {
+                                                    "type": "integer"
+                                                },
+                                                "sources": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "string"
+                                                            },
+                                                            "name": {
+                                                                "type": "string"
+                                                            },
+                                                            "publisher": {
+                                                                "type": "string"
+                                                            },
+                                                            "url": {
+                                                                "type": "string"
+                                                            },
+                                                            "publishedAt": {
+                                                                "type": "string"
+                                                            },
+                                                            "count": {
+                                                                "type": "integer"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object"
+                                        },
+                                        "disclaimer": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Missing or invalid credentials",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "security": [
+        {
+            "ApiKey": []
+        }
+    ],
+    "components": {
+        "securitySchemes": {
+            "ApiKey": {
+                "type": "apiKey",
+                "in": "header",
+                "name": "X-API-Key",
+                "description": "Prepaid credit key bought with XRP or RLUSD on the XRP Ledger, or USDC on Base or Ethereum: GET /api/v1/billing/info. Marketplace subscribers use the marketplace's own key instead."
+            }
+        },
+        "schemas": {
+            "Error": {
+                "type": "object",
+                "properties": {
+                    "error": {
+                        "type": "object",
+                        "properties": {
+                            "code": {
+                                "type": "string"
+                            },
+                            "message": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "Monitor": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "externalId": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "dob": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "country": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "lastScreenedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "lastDecision": {
+                        "type": "string",
+                        "enum": [
+                            "clear",
+                            "potential_match",
+                            "strong_match"
+                        ]
+                    },
+                    "currentMatchIds": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "upToDate": {
+                        "type": "boolean",
+                        "description": "Screened against the current list snapshot"
+                    }
+                }
+            },
+            "Alert": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "kind": {
+                        "type": "string",
+                        "enum": [
+                            "new_match",
+                            "match_removed"
+                        ]
+                    },
+                    "monitorId": {
+                        "type": "string"
+                    },
+                    "externalId": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "monitoredName": {
+                        "type": "string"
+                    },
+                    "match": {
+                        "type": "object",
+                        "description": "Full match (new_match) or {id} (match_removed)"
+                    },
+                    "listsVersion": {
+                        "type": "string"
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "webhookDelivered": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "Record": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "source": {
+                        "type": "string"
+                    },
+                    "sourceName": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "aliases": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "aliasCount": {
+                        "type": "integer"
+                    },
+                    "datesOfBirth": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "placesOfBirth": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "nationalities": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "addressCountries": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "programs": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "walletAddresses": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "chain": {
+                                    "type": "string"
+                                },
+                                "address": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "identifiers": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "type": {
+                                    "type": "string"
+                                },
+                                "number": {
+                                    "type": "string"
+                                },
+                                "country": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "listedOn": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "remarks": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "sourceUrl": {
+                        "type": "string"
+                    }
+                }
+            },
+            "WalletResult": {
+                "type": "object",
+                "properties": {
+                    "screeningId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "screenedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "address": {
+                        "type": "string"
+                    },
+                    "addressFormat": {
+                        "type": "string",
+                        "enum": [
+                            "evm",
+                            "bitcoin",
+                            "tron",
+                            "litecoin",
+                            "monero",
+                            "solana-or-base58",
+                            "unknown"
+                        ]
+                    },
+                    "sanctioned": {
+                        "type": "boolean"
+                    },
+                    "decision": {
+                        "type": "string",
+                        "enum": [
+                            "clear",
+                            "sanctioned"
+                        ]
+                    },
+                    "listsVersion": {
+                        "type": "string"
+                    },
+                    "coverage": {
+                        "type": "string"
+                    },
+                    "matches": {
+                        "type": "array",
+                        "items": {
+                            "allOf": [
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "listedChain": {
+                                            "type": "string"
+                                        },
+                                        "listedAddress": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                {
+                                    "$ref": "#/components/schemas/Record"
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "ScreenResult": {
+                "type": "object",
+                "properties": {
+                    "screeningId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Store this for your audit trail"
+                    },
+                    "screenedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "query": {
+                        "type": "object",
+                        "required": [
+                            "name"
+                        ],
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "minLength": 2,
+                                "maxLength": 200,
+                                "example": "Vladimir Putin"
+                            },
+                            "type": {
+                                "type": "string",
+                                "enum": [
+                                    "individual",
+                                    "entity",
+                                    "vessel",
+                                    "aircraft"
+                                ]
+                            },
+                            "dob": {
+                                "type": "string",
+                                "description": "YYYY, YYYY-MM or YYYY-MM-DD. Mismatches reduce the score.",
+                                "example": "1952-10-07"
+                            },
+                            "country": {
+                                "type": "string",
+                                "description": "Nationality or address country. Mismatches reduce the score.",
+                                "example": "Russia"
+                            },
+                            "sources": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "enum": [
+                                        "OFAC_SDN",
+                                        "OFAC_CONS",
+                                        "UN",
+                                        "EU",
+                                        "UK"
+                                    ]
+                                }
+                            },
+                            "threshold": {
+                                "type": "number",
+                                "minimum": 0.5,
+                                "maximum": 1,
+                                "default": 0.88
+                            },
+                            "limit": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 50,
+                                "default": 10
+                            }
+                        }
+                    },
+                    "decision": {
+                        "type": "string",
+                        "enum": [
+                            "clear",
+                            "potential_match",
+                            "strong_match"
+                        ]
+                    },
+                    "matchCount": {
+                        "type": "integer"
+                    },
+                    "listsVersion": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "When the list snapshot used for this screening was fetched"
+                    },
+                    "matches": {
+                        "type": "array",
+                        "items": {
+                            "allOf": [
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "score": {
+                                            "type": "number"
+                                        },
+                                        "nameScore": {
+                                            "type": "number"
+                                        },
+                                        "matchedName": {
+                                            "type": "string"
+                                        },
+                                        "dobMatch": {
+                                            "type": "boolean",
+                                            "nullable": true
+                                        },
+                                        "countryMatch": {
+                                            "type": "boolean",
+                                            "nullable": true
+                                        }
+                                    }
+                                },
+                                {
+                                    "$ref": "#/components/schemas/Record"
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

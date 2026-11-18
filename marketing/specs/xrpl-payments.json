@@ -1,0 +1,859 @@
+{
+    "openapi": "3.0.3",
+    "info": {
+        "title": "NoshGuard XRPL Payment Safety API",
+        "version": "1.0.0",
+        "description": "Stop failed and fraudulent XRP Ledger payments. Pre-flight predicts whether a payment will succeed before you sign it; Settlement Verify confirms what you were actually paid, catching partial payments and counterfeit tokens; Counterparty Check screens any address, its funder and its recent counterparties against OFAC."
+    },
+    "servers": [
+        {
+            "url": "https://noshguard.vercel.app/api/v1"
+        }
+    ],
+    "paths": {
+        "/xrpl/preflight": {
+            "get": {
+                "summary": "Payment Pre-flight (1 credit): will this XRP or token payment succeed?",
+                "operationId": "xrplPreflight",
+                "tags": [
+                    "XRPL Payments"
+                ],
+                "description": "Predicts the ledger result before signing: destination tag required (tecDST_TAG_NEEDED), unactivated recipient below reserve (tecNO_DST_INSUF_XRP), missing or full trust line (tecPATH_DRY / tecPATH_PARTIAL), frozen or unauthorized lines, deposit authorization (tecNO_PERMISSION), unfunded sender (tecUNFUNDED_PAYMENT), issuer transfer fees, and OFAC screening of both parties.",
+                "parameters": [
+                    {
+                        "name": "to",
+                        "in": "query",
+                        "required": true,
+                        "description": "Recipient address",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "rDsbeomae4FXwgQTJp9Rs64Qg9vDiTCdBv"
+                    },
+                    {
+                        "name": "amount",
+                        "in": "query",
+                        "required": true,
+                        "description": "Amount (XRP, or token units)",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "25"
+                    },
+                    {
+                        "name": "currency",
+                        "in": "query",
+                        "required": false,
+                        "description": "XRP or a token code",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "XRP"
+                    },
+                    {
+                        "name": "issuer",
+                        "in": "query",
+                        "required": false,
+                        "description": "Token issuer (required unless XRP)",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "destinationTag",
+                        "in": "query",
+                        "required": false,
+                        "description": "Destination tag",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "example": 12345
+                    },
+                    {
+                        "name": "from",
+                        "in": "query",
+                        "required": false,
+                        "description": "Sender address (enables balance and deposit-auth checks)",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "verdict": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "will_succeed",
+                                                        "will_succeed_with_warnings",
+                                                        "will_fail"
+                                                    ]
+                                                },
+                                                "checks": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "string"
+                                                            },
+                                                            "status": {
+                                                                "type": "string",
+                                                                "enum": [
+                                                                    "pass",
+                                                                    "warn",
+                                                                    "fail"
+                                                                ]
+                                                            },
+                                                            "message": {
+                                                                "type": "string"
+                                                            },
+                                                            "ledgerResult": {
+                                                                "type": "string"
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                "validatedLedgerIndex": {
+                                                    "type": "integer"
+                                                }
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object"
+                                        },
+                                        "disclaimer": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid parameters",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Missing or invalid credentials",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "502": {
+                        "description": "XRPL nodes unavailable",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/xrpl/verify": {
+            "get": {
+                "summary": "Settlement Verify (1 credit): did I really get paid? Partial payments and counterfeit tokens",
+                "operationId": "xrplVerify",
+                "tags": [
+                    "XRPL Payments"
+                ],
+                "description": "Given a transaction hash and what you expected, reports what was actually delivered (meta.delivered_amount), flags partial payments, counterfeit tokens (a major asset code from an issuer that fails xrp-ledger.toml verification), unvalidated or failed transactions, wrong destination or tag, and sanctioned senders. Verdict: settled, settled_with_warnings or not_settled.",
+                "parameters": [
+                    {
+                        "name": "tx",
+                        "in": "query",
+                        "required": true,
+                        "description": "Transaction hash",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "expectTo",
+                        "in": "query",
+                        "required": false,
+                        "description": "Your receiving address",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "expectDestinationTag",
+                        "in": "query",
+                        "required": false,
+                        "description": "Expected destination tag",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "expectAmount",
+                        "in": "query",
+                        "required": false,
+                        "description": "Minimum expected amount",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "expectCurrency",
+                        "in": "query",
+                        "required": false,
+                        "description": "Expected currency (XRP or token code)",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "RLUSD"
+                    },
+                    {
+                        "name": "expectIssuer",
+                        "in": "query",
+                        "required": false,
+                        "description": "Expected token issuer",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "verdict": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "settled",
+                                                        "settled_with_warnings",
+                                                        "not_settled"
+                                                    ]
+                                                },
+                                                "findings": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "payment": {
+                                                    "type": "object"
+                                                },
+                                                "issuer": {
+                                                    "type": "object",
+                                                    "nullable": true
+                                                }
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object"
+                                        },
+                                        "disclaimer": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid parameters",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Missing or invalid credentials",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Transaction not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "502": {
+                        "description": "XRPL nodes unavailable",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/xrpl/check": {
+            "get": {
+                "summary": "XRPL Counterparty Check (2 credits): sanctions + ledger state + NOSHASHI issuer certificate",
+                "operationId": "xrplCheck",
+                "tags": [
+                    "XRPL"
+                ],
+                "description": "One verdict (clear / review / block) on an XRP Ledger address: OFAC listing of the address, its funding account and its direct counterparties in the last 200 transactions; account settings (destination tag required, deposit authorization, frozen); and for token issuers, clawback and NOSHASHI's issuer authority certificate with its SHA-256 digest. A check that could not run is reported as review, never clear.",
+                "parameters": [
+                    {
+                        "name": "address",
+                        "in": "query",
+                        "required": true,
+                        "description": "XRPL classic address",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "verdict": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "clear",
+                                                        "review",
+                                                        "block"
+                                                    ]
+                                                },
+                                                "findings": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "code": {
+                                                                "type": "string"
+                                                            },
+                                                            "severity": {
+                                                                "type": "string",
+                                                                "enum": [
+                                                                    "block",
+                                                                    "review",
+                                                                    "info"
+                                                                ]
+                                                            },
+                                                            "message": {
+                                                                "type": "string"
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                "sanctions": {
+                                                    "type": "object"
+                                                },
+                                                "ledger": {
+                                                    "type": "object"
+                                                },
+                                                "issuer": {
+                                                    "type": "object",
+                                                    "nullable": true
+                                                }
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object"
+                                        },
+                                        "disclaimer": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid address",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Missing or invalid credentials",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "502": {
+                        "description": "XRPL nodes unavailable",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "security": [
+        {
+            "ApiKey": []
+        }
+    ],
+    "components": {
+        "securitySchemes": {
+            "ApiKey": {
+                "type": "apiKey",
+                "in": "header",
+                "name": "X-API-Key",
+                "description": "Prepaid credit key bought with XRP or RLUSD on the XRP Ledger, or USDC on Base or Ethereum: GET /api/v1/billing/info. Marketplace subscribers use the marketplace's own key instead."
+            }
+        },
+        "schemas": {
+            "Error": {
+                "type": "object",
+                "properties": {
+                    "error": {
+                        "type": "object",
+                        "properties": {
+                            "code": {
+                                "type": "string"
+                            },
+                            "message": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "Monitor": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "externalId": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "dob": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "country": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "lastScreenedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "lastDecision": {
+                        "type": "string",
+                        "enum": [
+                            "clear",
+                            "potential_match",
+                            "strong_match"
+                        ]
+                    },
+                    "currentMatchIds": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "upToDate": {
+                        "type": "boolean",
+                        "description": "Screened against the current list snapshot"
+                    }
+                }
+            },
+            "Alert": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "kind": {
+                        "type": "string",
+                        "enum": [
+                            "new_match",
+                            "match_removed"
+                        ]
+                    },
+                    "monitorId": {
+                        "type": "string"
+                    },
+                    "externalId": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "monitoredName": {
+                        "type": "string"
+                    },
+                    "match": {
+                        "type": "object",
+                        "description": "Full match (new_match) or {id} (match_removed)"
+                    },
+                    "listsVersion": {
+                        "type": "string"
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "webhookDelivered": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "Record": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "source": {
+                        "type": "string"
+                    },
+                    "sourceName": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "aliases": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "aliasCount": {
+                        "type": "integer"
+                    },
+                    "datesOfBirth": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "placesOfBirth": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "nationalities": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "addressCountries": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "programs": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "walletAddresses": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "chain": {
+                                    "type": "string"
+                                },
+                                "address": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "identifiers": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "type": {
+                                    "type": "string"
+                                },
+                                "number": {
+                                    "type": "string"
+                                },
+                                "country": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "listedOn": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "remarks": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "sourceUrl": {
+                        "type": "string"
+                    }
+                }
+            },
+            "WalletResult": {
+                "type": "object",
+                "properties": {
+                    "screeningId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "screenedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "address": {
+                        "type": "string"
+                    },
+                    "addressFormat": {
+                        "type": "string",
+                        "enum": [
+                            "evm",
+                            "bitcoin",
+                            "tron",
+                            "litecoin",
+                            "monero",
+                            "solana-or-base58",
+                            "unknown"
+                        ]
+                    },
+                    "sanctioned": {
+                        "type": "boolean"
+                    },
+                    "decision": {
+                        "type": "string",
+                        "enum": [
+                            "clear",
+                            "sanctioned"
+                        ]
+                    },
+                    "listsVersion": {
+                        "type": "string"
+                    },
+                    "coverage": {
+                        "type": "string"
+                    },
+                    "matches": {
+                        "type": "array",
+                        "items": {
+                            "allOf": [
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "listedChain": {
+                                            "type": "string"
+                                        },
+                                        "listedAddress": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                {
+                                    "$ref": "#/components/schemas/Record"
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "ScreenResult": {
+                "type": "object",
+                "properties": {
+                    "screeningId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Store this for your audit trail"
+                    },
+                    "screenedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "query": {
+                        "type": "object",
+                        "required": [
+                            "name"
+                        ],
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "minLength": 2,
+                                "maxLength": 200,
+                                "example": "Vladimir Putin"
+                            },
+                            "type": {
+                                "type": "string",
+                                "enum": [
+                                    "individual",
+                                    "entity",
+                                    "vessel",
+                                    "aircraft"
+                                ]
+                            },
+                            "dob": {
+                                "type": "string",
+                                "description": "YYYY, YYYY-MM or YYYY-MM-DD. Mismatches reduce the score.",
+                                "example": "1952-10-07"
+                            },
+                            "country": {
+                                "type": "string",
+                                "description": "Nationality or address country. Mismatches reduce the score.",
+                                "example": "Russia"
+                            },
+                            "sources": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "enum": [
+                                        "OFAC_SDN",
+                                        "OFAC_CONS",
+                                        "UN",
+                                        "EU",
+                                        "UK"
+                                    ]
+                                }
+                            },
+                            "threshold": {
+                                "type": "number",
+                                "minimum": 0.5,
+                                "maximum": 1,
+                                "default": 0.88
+                            },
+                            "limit": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 50,
+                                "default": 10
+                            }
+                        }
+                    },
+                    "decision": {
+                        "type": "string",
+                        "enum": [
+                            "clear",
+                            "potential_match",
+                            "strong_match"
+                        ]
+                    },
+                    "matchCount": {
+                        "type": "integer"
+                    },
+                    "listsVersion": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "When the list snapshot used for this screening was fetched"
+                    },
+                    "matches": {
+                        "type": "array",
+                        "items": {
+                            "allOf": [
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "score": {
+                                            "type": "number"
+                                        },
+                                        "nameScore": {
+                                            "type": "number"
+                                        },
+                                        "matchedName": {
+                                            "type": "string"
+                                        },
+                                        "dobMatch": {
+                                            "type": "boolean",
+                                            "nullable": true
+                                        },
+                                        "countryMatch": {
+                                            "type": "boolean",
+                                            "nullable": true
+                                        }
+                                    }
+                                },
+                                {
+                                    "$ref": "#/components/schemas/Record"
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

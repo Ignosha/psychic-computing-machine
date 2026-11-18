@@ -1,0 +1,875 @@
+{
+    "openapi": "3.0.3",
+    "info": {
+        "title": "NoshGuard XRPL Account Security API",
+        "version": "1.0.0",
+        "description": "Security checks for XRP Ledger accounts: who can sign and whether control changed recently (takeover signal), address-poisoning and phishing-memo detection, trust-line audits that find recoverable XRP reserve and look-alike tokens, and escrow unlock calendars."
+    },
+    "servers": [
+        {
+            "url": "https://noshguard.vercel.app/api/v1"
+        }
+    ],
+    "paths": {
+        "/xrpl/control": {
+            "get": {
+                "summary": "Account Control Audit (2 credits): who can sign, and did that change recently?",
+                "operationId": "controlAudit",
+                "tags": [
+                    "XRPL Account Security"
+                ],
+                "description": "Master key, regular key and multi-signing setup, plus every control change (SetRegularKey, SignerListSet, master key disabled or re-enabled) in recent history. A recent change is flagged as a takeover signal; signers on the OFAC list are blocked.",
+                "parameters": [
+                    {
+                        "name": "address",
+                        "in": "query",
+                        "required": true,
+                        "description": "XRPL classic address",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "verdict": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "clear",
+                                                        "review",
+                                                        "block"
+                                                    ]
+                                                },
+                                                "findings": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "string"
+                                                            },
+                                                            "severity": {
+                                                                "type": "string"
+                                                            },
+                                                            "message": {
+                                                                "type": "string"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object"
+                                        },
+                                        "disclaimer": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid address",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Missing or invalid credentials",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Account not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "502": {
+                        "description": "XRPL nodes unavailable",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/xrpl/inbox": {
+            "get": {
+                "summary": "Inbox Threat Scan (2 credits): address poisoning, phishing memos, dust spam",
+                "operationId": "inboxScan",
+                "tags": [
+                    "XRPL Account Security"
+                ],
+                "description": "Scans recent incoming transactions for address-poisoning attempts (senders imitating the first and last characters of addresses this account has paid), links in memos, dust spam and OFAC-listed senders.",
+                "parameters": [
+                    {
+                        "name": "address",
+                        "in": "query",
+                        "required": true,
+                        "description": "XRPL classic address",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "rDsbeomae4FXwgQTJp9Rs64Qg9vDiTCdBv"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "verdict": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "clear",
+                                                        "review",
+                                                        "block"
+                                                    ]
+                                                },
+                                                "findings": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "string"
+                                                            },
+                                                            "severity": {
+                                                                "type": "string"
+                                                            },
+                                                            "message": {
+                                                                "type": "string"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object"
+                                        },
+                                        "disclaimer": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid address",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Missing or invalid credentials",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Account not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "502": {
+                        "description": "XRPL nodes unavailable",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/xrpl/trustlines": {
+            "get": {
+                "summary": "Trust Line Audit (2 credits): recoverable reserve and risky holdings",
+                "operationId": "trustlineAudit",
+                "tags": [
+                    "XRPL Account Security"
+                ],
+                "description": "Lists empty trust lines that can be removed to release owner reserve, and flags holdings of look-alike tokens (major asset codes from unverified issuers), frozen lines, clawback-capable and OFAC-listed issuers.",
+                "parameters": [
+                    {
+                        "name": "address",
+                        "in": "query",
+                        "required": true,
+                        "description": "XRPL classic address",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "rKyvBTU7UqAoHbQe3jgZee2W1SxgrK6b7m"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "verdict": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "clear",
+                                                        "review",
+                                                        "block"
+                                                    ]
+                                                },
+                                                "findings": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "string"
+                                                            },
+                                                            "severity": {
+                                                                "type": "string"
+                                                            },
+                                                            "message": {
+                                                                "type": "string"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object"
+                                        },
+                                        "disclaimer": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid address",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Missing or invalid credentials",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Account not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "502": {
+                        "description": "XRPL nodes unavailable",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/xrpl/escrows": {
+            "get": {
+                "summary": "Escrow Unlock Calendar (1 credit): upcoming escrow releases",
+                "operationId": "escrowCalendar",
+                "tags": [
+                    "XRPL Account Security"
+                ],
+                "description": "Every escrow on an account with amounts, releasable-from and expiry dates, conditional flags, the next release and XRP releasable per month.",
+                "parameters": [
+                    {
+                        "name": "address",
+                        "in": "query",
+                        "required": true,
+                        "description": "XRPL classic address",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "r9UUEXn3cx2seufBkDa8F86usfjWM6HiYp"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "verdict": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "clear",
+                                                        "review",
+                                                        "block"
+                                                    ]
+                                                },
+                                                "findings": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "string"
+                                                            },
+                                                            "severity": {
+                                                                "type": "string"
+                                                            },
+                                                            "message": {
+                                                                "type": "string"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object"
+                                        },
+                                        "disclaimer": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid address",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Missing or invalid credentials",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Account not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "502": {
+                        "description": "XRPL nodes unavailable",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "security": [
+        {
+            "ApiKey": []
+        }
+    ],
+    "components": {
+        "securitySchemes": {
+            "ApiKey": {
+                "type": "apiKey",
+                "in": "header",
+                "name": "X-API-Key",
+                "description": "Prepaid credit key bought with XRP or RLUSD on the XRP Ledger, or USDC on Base or Ethereum: GET /api/v1/billing/info. Marketplace subscribers use the marketplace's own key instead."
+            }
+        },
+        "schemas": {
+            "Error": {
+                "type": "object",
+                "properties": {
+                    "error": {
+                        "type": "object",
+                        "properties": {
+                            "code": {
+                                "type": "string"
+                            },
+                            "message": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "Monitor": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "externalId": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "dob": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "country": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "lastScreenedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "lastDecision": {
+                        "type": "string",
+                        "enum": [
+                            "clear",
+                            "potential_match",
+                            "strong_match"
+                        ]
+                    },
+                    "currentMatchIds": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "upToDate": {
+                        "type": "boolean",
+                        "description": "Screened against the current list snapshot"
+                    }
+                }
+            },
+            "Alert": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "kind": {
+                        "type": "string",
+                        "enum": [
+                            "new_match",
+                            "match_removed"
+                        ]
+                    },
+                    "monitorId": {
+                        "type": "string"
+                    },
+                    "externalId": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "monitoredName": {
+                        "type": "string"
+                    },
+                    "match": {
+                        "type": "object",
+                        "description": "Full match (new_match) or {id} (match_removed)"
+                    },
+                    "listsVersion": {
+                        "type": "string"
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "webhookDelivered": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "Record": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "source": {
+                        "type": "string"
+                    },
+                    "sourceName": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "aliases": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "aliasCount": {
+                        "type": "integer"
+                    },
+                    "datesOfBirth": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "placesOfBirth": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "nationalities": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "addressCountries": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "programs": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "walletAddresses": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "chain": {
+                                    "type": "string"
+                                },
+                                "address": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "identifiers": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "type": {
+                                    "type": "string"
+                                },
+                                "number": {
+                                    "type": "string"
+                                },
+                                "country": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "listedOn": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "remarks": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "sourceUrl": {
+                        "type": "string"
+                    }
+                }
+            },
+            "WalletResult": {
+                "type": "object",
+                "properties": {
+                    "screeningId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "screenedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "address": {
+                        "type": "string"
+                    },
+                    "addressFormat": {
+                        "type": "string",
+                        "enum": [
+                            "evm",
+                            "bitcoin",
+                            "tron",
+                            "litecoin",
+                            "monero",
+                            "solana-or-base58",
+                            "unknown"
+                        ]
+                    },
+                    "sanctioned": {
+                        "type": "boolean"
+                    },
+                    "decision": {
+                        "type": "string",
+                        "enum": [
+                            "clear",
+                            "sanctioned"
+                        ]
+                    },
+                    "listsVersion": {
+                        "type": "string"
+                    },
+                    "coverage": {
+                        "type": "string"
+                    },
+                    "matches": {
+                        "type": "array",
+                        "items": {
+                            "allOf": [
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "listedChain": {
+                                            "type": "string"
+                                        },
+                                        "listedAddress": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                {
+                                    "$ref": "#/components/schemas/Record"
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "ScreenResult": {
+                "type": "object",
+                "properties": {
+                    "screeningId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Store this for your audit trail"
+                    },
+                    "screenedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "query": {
+                        "type": "object",
+                        "required": [
+                            "name"
+                        ],
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "minLength": 2,
+                                "maxLength": 200,
+                                "example": "Vladimir Putin"
+                            },
+                            "type": {
+                                "type": "string",
+                                "enum": [
+                                    "individual",
+                                    "entity",
+                                    "vessel",
+                                    "aircraft"
+                                ]
+                            },
+                            "dob": {
+                                "type": "string",
+                                "description": "YYYY, YYYY-MM or YYYY-MM-DD. Mismatches reduce the score.",
+                                "example": "1952-10-07"
+                            },
+                            "country": {
+                                "type": "string",
+                                "description": "Nationality or address country. Mismatches reduce the score.",
+                                "example": "Russia"
+                            },
+                            "sources": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "enum": [
+                                        "OFAC_SDN",
+                                        "OFAC_CONS",
+                                        "UN",
+                                        "EU",
+                                        "UK"
+                                    ]
+                                }
+                            },
+                            "threshold": {
+                                "type": "number",
+                                "minimum": 0.5,
+                                "maximum": 1,
+                                "default": 0.88
+                            },
+                            "limit": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 50,
+                                "default": 10
+                            }
+                        }
+                    },
+                    "decision": {
+                        "type": "string",
+                        "enum": [
+                            "clear",
+                            "potential_match",
+                            "strong_match"
+                        ]
+                    },
+                    "matchCount": {
+                        "type": "integer"
+                    },
+                    "listsVersion": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "When the list snapshot used for this screening was fetched"
+                    },
+                    "matches": {
+                        "type": "array",
+                        "items": {
+                            "allOf": [
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "score": {
+                                            "type": "number"
+                                        },
+                                        "nameScore": {
+                                            "type": "number"
+                                        },
+                                        "matchedName": {
+                                            "type": "string"
+                                        },
+                                        "dobMatch": {
+                                            "type": "boolean",
+                                            "nullable": true
+                                        },
+                                        "countryMatch": {
+                                            "type": "boolean",
+                                            "nullable": true
+                                        }
+                                    }
+                                },
+                                {
+                                    "$ref": "#/components/schemas/Record"
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
