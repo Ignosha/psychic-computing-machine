@@ -331,7 +331,7 @@
                 "summary": "XRPL Counterparty Check (2 credits): sanctions + ledger state + NOSHASHI issuer certificate",
                 "operationId": "xrplCheck",
                 "tags": [
-                    "XRPL"
+                    "XRPL Payments"
                 ],
                 "description": "One verdict (clear / review / block) on an XRP Ledger address: OFAC listing of the address, its funding account and its direct counterparties in the last 200 transactions; account settings (destination tag required, deposit authorization, frozen); and for token issuers, clawback and NOSHASHI's issuer authority certificate with its SHA-256 digest. A check that could not run is reported as review, never clear.",
                 "parameters": [

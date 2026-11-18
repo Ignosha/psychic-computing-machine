@@ -27,4 +27,4 @@ export const POST = handler<unknown>(async (req) => {
     }, SANCTIONS_SOURCE),
     disclaimer: DISCLAIMER,
   });
-}, { minPlan: "PRO", planLabel: "Growth" });
+}, { minPlan: "PRO", planLabel: "Pro" });

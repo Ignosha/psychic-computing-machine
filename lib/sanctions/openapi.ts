@@ -58,7 +58,7 @@ export const sanctionsOpenapi = {
     },
     "/sanctions/wallets/batch": {
       post: {
-        summary: "Screen many wallet addresses (Growth: 25, Business+: 100)", operationId: "screenWalletsBatch", tags: ["Crypto"],
+        summary: "Screen many wallet addresses (Pro: 25 per call, Ultra and Mega: 100)", operationId: "screenWalletsBatch", tags: ["Crypto"],
         requestBody: { required: true, content: { "application/json": { schema: { type: "object", required: ["addresses"], properties: { addresses: { type: "array", maxItems: 100, items: { type: "string" } } } } } } },
         responses: { ...ok({ type: "object", properties: { summary: { type: "object", properties: { submitted: { type: "integer" }, screened: { type: "integer" }, failed: { type: "integer" }, sanctioned: { type: "integer" } } }, results: { type: "array", items: { $ref: "#/components/schemas/WalletResult" } } } }), ...errors({ "400": "Invalid body", "403": "Plan upgrade required" }) },
       },
@@ -124,7 +124,7 @@ export const sanctionsOpenapi = {
     },
     "/xrpl/check": {
       get: {
-        summary: "XRPL Counterparty Check (2 credits): sanctions + ledger state + NOSHASHI issuer certificate", operationId: "xrplCheck", tags: ["XRPL"],
+        summary: "XRPL Counterparty Check (2 credits): sanctions + ledger state + NOSHASHI issuer certificate", operationId: "xrplCheck", tags: ["XRPL Payments"],
         description: "One verdict (clear / review / block) on an XRP Ledger address: OFAC listing of the address, its funding account and its direct counterparties in the last 200 transactions; account settings (destination tag required, deposit authorization, frozen); and for token issuers, clawback and NOSHASHI's issuer authority certificate with its SHA-256 digest. A check that could not run is reported as review, never clear.",
         parameters: [qp("address", "XRPL classic address", { type: "string" }, "rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De", true)],
         responses: { ...ok({ type: "object", properties: { verdict: { type: "string", enum: ["clear", "review", "block"] }, findings: { type: "array", items: { type: "object", properties: { code: { type: "string" }, severity: { type: "string", enum: ["block", "review", "info"] }, message: { type: "string" } } } }, sanctions: { type: "object" }, ledger: { type: "object" }, issuer: { type: "object", nullable: true } } }), ...errors({ "400": "Invalid address", "502": "XRPL nodes unavailable" }) },
@@ -132,7 +132,7 @@ export const sanctionsOpenapi = {
     },
     "/sanctions/batch": {
       post: {
-        summary: "Screen many names in one call (Growth plan: 25, Business+: 100)", operationId: "screenBatch", tags: ["Screening"],
+        summary: "Screen many names in one call (Pro: 25 per call, Ultra and Mega: 100)", operationId: "screenBatch", tags: ["Screening"],
         requestBody: { required: true, content: { "application/json": { schema: { type: "object", required: ["queries"], properties: { queries: { type: "array", maxItems: 100, items: Query } } },
           example: { queries: [{ name: "Vladimir Putin" }, { name: "Jane Doe", dob: "1990-01-01", country: "Canada" }] } } } },
         responses: { ...ok({ type: "object", properties: {
@@ -149,7 +149,7 @@ export const sanctionsOpenapi = {
       },
       post: {
         summary: "Monitor names: screened now, then re-screened daily whenever the lists have changed", operationId: "addMonitors", tags: ["Monitoring"],
-        description: "Up to 500 items per call. Re-adding an item with the same externalId updates it. Plan limits: Starter 10, Growth 1,000, Business 25,000, Enterprise 250,000 monitored names.",
+        description: "Up to 500 items per call. Re-adding an item with the same externalId updates it. Plan limits: Basic 10, Pro 1,000, Ultra 25,000, Mega 250,000 monitored names.",
         requestBody: { required: true, content: { "application/json": { schema: { type: "object", required: ["items"], properties: { items: { type: "array", maxItems: 500, items: { allOf: [Query, { type: "object", properties: { externalId: { type: "string", description: "Your own customer ID" } } }] } } } },
           example: { items: [{ name: "Jane Doe", externalId: "cust-1042", dob: "1985-04-12", country: "Canada" }] } } } },
         responses: { ...ok({ type: "object", properties: { added: { type: "integer" }, results: { type: "array", items: { type: "object", properties: { monitor: { $ref: "#/components/schemas/Monitor" }, currentScreening: { type: "object" } } } } } }), ...errors({ "400": "Invalid items", "403": "Monitor limit reached for your plan" }) },

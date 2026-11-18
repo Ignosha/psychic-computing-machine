@@ -20,4 +20,4 @@ export const POST = handler<unknown>(async (req) => {
     summary: { submitted: results.length, screened: ok.length, failed: results.length - ok.length, sanctioned: ok.filter((r) => r.sanctioned).length },
     results,
   }, SANCTIONS_SOURCE), disclaimer: DISCLAIMER });
-}, { minPlan: "PRO", planLabel: "Growth" });
+}, { minPlan: "PRO", planLabel: "Pro" });

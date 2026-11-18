@@ -386,7 +386,7 @@
         },
         "/sanctions/wallets/batch": {
             "post": {
-                "summary": "Screen many wallet addresses (Growth: 25, Business+: 100)",
+                "summary": "Screen many wallet addresses (Pro: 25 per call, Ultra and Mega: 100)",
                 "operationId": "screenWalletsBatch",
                 "tags": [
                     "Crypto"
@@ -495,7 +495,7 @@
         },
         "/sanctions/batch": {
             "post": {
-                "summary": "Screen many names in one call (Growth plan: 25, Business+: 100)",
+                "summary": "Screen many names in one call (Pro: 25 per call, Ultra and Mega: 100)",
                 "operationId": "screenBatch",
                 "tags": [
                     "Screening"

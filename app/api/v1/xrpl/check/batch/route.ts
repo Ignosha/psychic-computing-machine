@@ -25,4 +25,4 @@ export const POST = handler<unknown>(async (req) => {
       block: ok.filter((r) => r.verdict === "block").length, review: ok.filter((r) => r.verdict === "review").length, clear: ok.filter((r) => r.verdict === "clear").length },
     results,
   }, XRPL_SOURCE), disclaimer: DISCLAIMER }, 200, { "Cache-Control": "no-store" });
-}, { minPlan: "PRO", planLabel: "Growth", cost: 2 });
+}, { minPlan: "PRO", planLabel: "Pro", cost: 2 });
