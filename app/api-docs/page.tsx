@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { PARENT_BRAND, SITE_NAME, SITE_URL } from "@/lib/site";
+import { LISTING_LABELS, LISTING_URLS, PARENT_BRAND, SITE_NAME, SITE_URL } from "@/lib/site";
 import { SANCTIONS_PLANS } from "@/lib/plans";
 import { LISTING_IDS, sanctionsOpenapi } from "@/lib/sanctions/openapi";
 import { listsInfo } from "@/lib/sanctions/api";
@@ -27,7 +27,11 @@ export default function ApiDocs() {
       <p className="eyebrow">API &amp; pricing</p>
       <h1>One API for <em>every</em> check.</h1>
       <p className="muted">Crypto compliance and XRPL payment safety in one API: {info.totalRecords.toLocaleString()} official sanctions records and live XRP Ledger reads, with {PARENT_BRAND.name} issuer certificates built in. JSON over HTTPS; every response names its data source and ledger index.</p>
-      {MARKET && <p><a href={MARKET}><button>Subscribe on the API marketplace</button></a></p>}
+      {Object.values(LISTING_URLS).some(Boolean) ? (
+        <p className="cta">{(Object.keys(LISTING_URLS) as (keyof typeof LISTING_URLS)[]).filter((k) => LISTING_URLS[k]).map((k) => (
+          <a key={k} className="btn" href={LISTING_URLS[k]} rel="noopener">Subscribe: {LISTING_LABELS[k]} <span className="arrow">↗</span></a>
+        ))}</p>
+      ) : MARKET && <p><a href={MARKET}><button>Subscribe on the API marketplace</button></a></p>}
 
       <h2>Plans</h2>
       <div className="plans">{SANCTIONS_PLANS.map((p) => (

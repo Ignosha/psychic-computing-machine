@@ -1,3 +1,4 @@
+import { LISTING_URLS } from "@/lib/site";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { listsInfo, parseQuery, runScreen } from "@/lib/sanctions/api";
@@ -75,7 +76,7 @@ export default async function SanctionsPage({ searchParams }: P) {
       )}
       <div className="panel">
         <h2 style={{ marginTop: 0 }}>Screening customers or payments?</h2>
-        <p>Automate it: the <Link href="/api-docs">API</Link> screens one name or 100 per call, with DOB and country filters, alias coverage and an audit ID for every screening.</p>
+        <p>Automate it: the <Link href="/api-docs">API</Link> screens one name or 100 per call, with DOB and country filters, alias coverage and an audit ID for every screening. Free plan, no card: <a href={LISTING_URLS.sanctions} rel="noopener">subscribe on RapidAPI ↗</a></p>
       </div>
       <h2>Lists covered</h2>
       <div className="card tablewrap">
